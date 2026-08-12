@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.24 — 界面骨架（MVP M1，2026-08-12 第二十七版）
+光伏支架线模生成器 V1.2.25 — 界面骨架（MVP M1，2026-08-12 第二十八版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.24 改动（常用截面库 + 线模带截面）：
-    1. 新增 pv_sections.py 常用截面库：C/Z/U/槽钢/角钢/方管/矩形管/圆管/圆钢
-       共 9 类 60+ 常用型号，含 A/I1/I2/W1/W2/单位重；
-       材料：Q235B/Q355B/Q460B + 铝合金 6061-T6/6063-T5/6005-T5；
-    2. 槽钢采用国标 GB/T 707 表值，其余按薄壁矩形分解计算（标注入库说明）；
-    3. DXF 线模新增【截面信息表】文字（构件/规格/型号/材质 + A/I），
-       CAD 打开即可核对截面是否合理；
-    4. 界面③截面下拉型号改为读截面库（与库一致）。
+V1.2.25 改动（3D3S 截面名称校准）：
+    1. 依据 3D3S 杆件库实测名称修正映射：
+       C型钢→冷弯C型钢、Z型钢→卷边Z形钢、U型钢→U型卷边槽钢、
+       方钢管→方形空心型钢、矩形钢管→矩形空心型钢；
+    2. 截面名称"×"改为 3D3S 格式 X（角钢用 x，如 L50x5）；
+    3. 槽钢/圆管名称按热轧页推测（普通槽钢/焊接圆管），待实测确认。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -215,7 +213,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.24")
+        root.title("光伏支架线模生成器 V1.2.25")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -233,7 +231,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.24：常用截面库已建，DXF 线模带截面信息表")
+        self.set_status("就绪 V1.2.25：3D3S 截面类型名称已按杆件库校准")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):

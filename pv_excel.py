@@ -23,16 +23,16 @@ MATERIAL_MAP = {
     "Q355": "Q355",
 }
 
-# 规格 -> 3D3S 截面类型（按模板示例推断，需在 3D3S 导入时校准）
+# 规格 -> 3D3S 截面类型（依据 3D3S 杆件库"薄壁截面/热轧型钢"页实测名称）
 SPEC_3D3S_TYPE = {
-    "角钢":     "普通角钢(等肢)",
-    "槽钢":     "普通槽钢",
-    "C型钢":    "冷弯薄壁C型钢",
-    "Z型钢":    "冷弯薄壁Z型钢",
-    "U型钢":    "普通槽钢",
-    "方钢管":   "焊接方管",
-    "矩形钢管": "焊接矩形管",
-    "圆钢/圆管": "焊接圆管",
+    "C型钢":     "冷弯C型钢",
+    "Z型钢":     "卷边Z形钢",
+    "U型钢":     "U型卷边槽钢",
+    "槽钢":      "普通槽钢",        # 热轧型钢页（待实测确认）
+    "角钢":      "普通角钢(等肢)",   # 热轧型钢页（模板示例确认）
+    "方钢管":    "方形空心型钢",
+    "矩形钢管":  "矩形空心型钢",
+    "圆钢/圆管": "焊接圆管",        # 待实测确认
 }
 
 
@@ -47,7 +47,10 @@ def _section(params, role):
     spec = sec.get("spec", "自定义")
     model = sec.get("model", "自定义")
     stype = SPEC_3D3S_TYPE.get(spec, spec)
-    return stype, model
+    # 3D3S 名称用 X 分隔（角钢模板用 x）
+    sep = "x" if spec == "角钢" else "X"
+    name = model.replace("×", sep).replace("x", sep).replace("X", sep)
+    return stype, name
 
 
 def write_3d3s_excel(params, path):
