@@ -57,6 +57,14 @@ python pv_support_gui.py
 
 要求：Python 3.10+（自带 tkinter）；DXF 导出需要 `ezdxf`（无则自动降级为手写 DXF）。
 
+## 免安装版（exe）
+
+已打包为单文件可执行程序，无需安装 Python 即可运行：
+
+[下载 PV-Support-Generator-V0.2.0.exe](https://github.com/scream2658/pv-support-generator/releases/download/V0.2.0/PV-Support-Generator-V0.2.0.exe)
+
+（Windows 10/11 64 位；首次启动约 2~3 秒解压，属正常现象）
+
 ## 文件说明
 
 | 文件 | 说明 |
