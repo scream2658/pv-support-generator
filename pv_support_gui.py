@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.43 — 界面骨架（MVP M1，2026-08-13 第四十五版）
+光伏支架线模生成器 V1.2.44 — 界面骨架（MVP M1，2026-08-13 第四十六版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.44 改动（窗口 960：左侧压缩 50px + 右侧加宽）：
+    1. 窗口宽度 860 → 960（root.geometry），右侧荷载参数
+       不再遮挡数字（余量 108px）；
+    2. 左侧栏固定宽度 342px（原 392，压缩 50px），并收紧
+       ①/②/③ 面板内部间距，左侧控件零溢出；
+    3. 右侧区域随窗口加宽至 602px（原 452），3D 预览与
+       荷载参数均更宽松；其余逻辑未改动。
 
 V1.2.43 改动（窗口整体收窄，右边界收到绿线）：
     1. 窗口宽度 1120 → 860（root.geometry），整个界面右边界
@@ -258,8 +266,8 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.43")
-        root.geometry("860x820")
+        root.title("光伏支架线模生成器 V1.2.44")
+        root.geometry("960x820")
         root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -276,7 +284,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.43：窗口整体收窄，右侧空白已消除")
+        self.set_status("就绪 V1.2.44：窗口 960，左侧压缩 50px，右侧已加宽")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -310,7 +318,8 @@ class PvSupportApp:
 
         left = ScrollableFrame(main)
         left.pack(side="left", fill="y", padx=(0, 6))
-        left.configure(width=580)
+        left.configure(width=342)
+        left.pack_propagate(False)
 
         right = ttk.Frame(main)
         right.pack(side="left", fill="both", expand=True)
@@ -324,7 +333,7 @@ class PvSupportApp:
 
     # ---------------------------------------------------------- ① 组件参数
     def _build_module_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="① 组件参数", padding=(6, 4))
+        grp = ttk.LabelFrame(parent, text="① 组件参数", padding=(4, 3))
         grp.pack(fill="x", pady=(0, 4))
 
         ttk.Label(grp, text="组件库").grid(row=0, column=0, sticky="w", pady=2)
@@ -333,20 +342,20 @@ class PvSupportApp:
             grp, textvariable=self.vars["module_lib"],
             values=list(COMPONENT_LIB), state="readonly", width=12,
         )
-        lib_cb.grid(row=0, column=1, columnspan=5, sticky="w", pady=2, padx=4)
+        lib_cb.grid(row=0, column=1, columnspan=5, sticky="w", pady=2, padx=2)
         lib_cb.bind("<<ComboboxSelected>>", self._on_lib_change)
 
         def pair(row, label1, key1, unit1, label2, key2, unit2):
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
             self.vars[key1] = tk.StringVar()
             e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5, justify="right")
-            e1.grid(row=row, column=1, sticky="w", padx=(4, 2))
+            e1.grid(row=row, column=1, sticky="w", padx=(2, 1))
             if unit1:
-                ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 8))
+                ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 4))
             ttk.Label(grp, text=label2).grid(row=row, column=3, sticky="w", pady=2)
             self.vars[key2] = tk.StringVar()
             e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5, justify="right")
-            e2.grid(row=row, column=4, sticky="w", padx=(4, 2))
+            e2.grid(row=row, column=4, sticky="w", padx=(2, 1))
             if unit2:
                 ttk.Label(grp, text=unit2).grid(row=row, column=5, sticky="w")
             return [e1, e2]
@@ -373,7 +382,7 @@ class PvSupportApp:
     def _build_support_group(self, parent):
         grp = ttk.LabelFrame(
             parent, text="② 支架形式（侧面示意 · 滚轮缩放 / 右键平移）",
-            padding=(6, 4),
+            padding=(4, 3),
         )
         grp.pack(fill="x", pady=(0, 4))
 
@@ -396,13 +405,13 @@ class PvSupportApp:
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
             self.vars[key1] = tk.StringVar()
             e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5, justify="right")
-            e1.grid(row=row, column=1, sticky="w", padx=(4, 2))
+            e1.grid(row=row, column=1, sticky="w", padx=(2, 1))
             if unit1:
-                ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 6))
+                ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 3))
             ttk.Label(grp, text=label2).grid(row=row, column=3, sticky="w", pady=2)
             self.vars[key2] = tk.StringVar()
             e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5, justify="right")
-            e2.grid(row=row, column=4, sticky="w", padx=(4, 2))
+            e2.grid(row=row, column=4, sticky="w", padx=(2, 1))
             if unit2:
                 ttk.Label(grp, text=unit2).grid(row=row, column=5, sticky="w")
             return [e1, e2]
@@ -414,73 +423,73 @@ class PvSupportApp:
         ttk.Label(grp, text="檩条到梁端距离").grid(row=4, column=0, sticky="w", pady=2)
         self.vars["purlin_end_offset"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_end_offset"], width=5, justify="right")
-        e.grid(row=4, column=1, sticky="w", padx=(4, 2))
+        e.grid(row=4, column=1, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 3))
 
         ttk.Label(grp, text="梁中心偏移").grid(row=4, column=3, sticky="w", pady=2)
         self.vars["beam_center_offset"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["beam_center_offset"], width=5, justify="right")
-        e.grid(row=4, column=4, sticky="w", padx=(4, 2))
+        e.grid(row=4, column=4, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=4, column=5, sticky="w")
 
         ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5, justify="right")
-        e.grid(row=5, column=1, sticky="w", padx=(4, 2))
+        e.grid(row=5, column=1, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=5, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="mm").grid(row=5, column=2, sticky="w", padx=(0, 3))
 
         ttk.Label(grp, text="榀数").grid(row=5, column=3, sticky="w", pady=2)
         self.vars["struct_frames"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_frames"], width=5, justify="right")
-        e.grid(row=5, column=4, sticky="w", padx=(4, 2))
+        e.grid(row=5, column=4, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
         ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
 
         ttk.Label(grp, text="斜撑离地").grid(row=6, column=0, sticky="w", pady=2)
         self.vars["brace_ground"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5, justify="right")
-        e.grid(row=6, column=1, sticky="w", padx=(4, 2))
+        e.grid(row=6, column=1, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 3))
 
         ttk.Label(grp, text="檩条外伸").grid(row=6, column=3, sticky="w", pady=2)
         self.vars["purlin_extension"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
-        e.grid(row=6, column=4, sticky="w", padx=(4, 2))
+        e.grid(row=6, column=4, sticky="w", padx=(2, 1))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
         # 四个只读计算字段两行两列：悬挑|总长 / 立柱高度|斜梁长度，填满右侧空白
         ttk.Label(grp, text="檩条悬挑").grid(row=7, column=0, sticky="w", pady=2)
         self.overhang_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.overhang_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
+        self.overhang_entry.grid(row=7, column=1, sticky="w", padx=(2, 1))
+        ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 3))
 
         ttk.Label(grp, text="檩条总长").grid(row=7, column=3, sticky="w", pady=2)
         self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.purlin_len_entry.grid(row=7, column=4, sticky="w", padx=(4, 2))
+        self.purlin_len_entry.grid(row=7, column=4, sticky="w", padx=(2, 1))
         ttk.Label(grp, text="mm").grid(row=7, column=5, sticky="w")
 
         ttk.Label(grp, text="立柱高度").grid(row=8, column=0, sticky="w", pady=(2, 0))
         self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.col_h_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
+        self.col_h_entry.grid(row=8, column=1, sticky="w", padx=(2, 1))
+        ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 3))
 
         ttk.Label(grp, text="斜梁长度").grid(row=8, column=3, sticky="w", pady=(2, 0))
         self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.beam_len_entry.grid(row=8, column=4, sticky="w", padx=(4, 2))
+        self.beam_len_entry.grid(row=8, column=4, sticky="w", padx=(2, 1))
         ttk.Label(grp, text="mm").grid(row=8, column=5, sticky="w")
 
         ttk.Label(grp, text="前斜撑长").grid(row=9, column=0, sticky="w", pady=(2, 0))
         self.front_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.front_brace_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 6))
+        self.front_brace_len_entry.grid(row=9, column=1, sticky="w", padx=(2, 1))
+        ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 3))
         ttk.Label(grp, text="后斜撑长").grid(row=9, column=3, sticky="w", pady=(2, 0))
         self.rear_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.rear_brace_len_entry.grid(row=9, column=4, sticky="w", padx=(4, 2))
+        self.rear_brace_len_entry.grid(row=9, column=4, sticky="w", padx=(2, 1))
         ttk.Label(grp, text="mm").grid(row=9, column=5, sticky="w")
 
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
@@ -488,12 +497,12 @@ class PvSupportApp:
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(6, 3))
+        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(4, 2))
         grp.pack(fill="x")
 
-        ttk.Label(grp, text="构件", anchor="center").grid(row=0, column=0, sticky="ew", padx=(0, 6))
-        ttk.Label(grp, text="规格", anchor="center").grid(row=0, column=1, sticky="ew", padx=(0, 4))
-        ttk.Label(grp, text="型号", anchor="center").grid(row=0, column=2, sticky="ew", padx=(0, 6))
+        ttk.Label(grp, text="构件", anchor="center").grid(row=0, column=0, sticky="ew", padx=(0, 3))
+        ttk.Label(grp, text="规格", anchor="center").grid(row=0, column=1, sticky="ew", padx=(0, 2))
+        ttk.Label(grp, text="型号", anchor="center").grid(row=0, column=2, sticky="ew", padx=(0, 3))
         ttk.Label(grp, text="材质等级", anchor="center").grid(row=0, column=3, sticky="ew")
         grp.columnconfigure(2, weight=1)
 
@@ -507,7 +516,7 @@ class PvSupportApp:
                 grp, textvariable=self.vars[f"sec_{role}_spec"],
                 values=SPEC_TYPES, state="readonly", width=5,
             )
-            spec_cb.grid(row=i, column=1, sticky="w", padx=(0, 4), pady=1)
+            spec_cb.grid(row=i, column=1, sticky="w", padx=(0, 2), pady=1)
             spec_cb.bind("<<ComboboxSelected>>", lambda _e, r=role: self._on_spec_change(r))
             self.section_spec_cbs[role] = spec_cb
 
@@ -516,7 +525,7 @@ class PvSupportApp:
                 grp, textvariable=self.vars[f"sec_{role}_model"],
                 values=SECTION_MODELS[spec_default], state="readonly", width=16,
             )
-            model_cb.grid(row=i, column=2, sticky="ew", padx=(0, 6), pady=1)
+            model_cb.grid(row=i, column=2, sticky="ew", padx=(0, 3), pady=1)
             self.section_model_cbs[role] = model_cb
 
             self.vars[f"sec_{role}_mat"] = tk.StringVar()
