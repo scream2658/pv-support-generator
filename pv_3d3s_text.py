@@ -24,7 +24,7 @@ from pv_geometry import build_model, beam_length
 SPEC_TYPE_ID = {
     "C型钢":     (13, "冷弯卷边槽钢", "VALUE"),
     "角钢":      (5,  "普通角钢(等肢)", "DB"),
-    "槽钢":      (3,  "普通槽钢", "VALUE"),
+    "槽钢":      (3,  "普通槽钢", "DB"),
     "圆钢/圆管": (22, "热轧无缝钢管与电焊钢管", "VALUE"),
     "矩形钢管":  (16, "矩形空心型钢", "DB"),
     "方钢管":    (16, "矩形空心型钢", "DB"),      # 方形管暂归矩形空心型钢，待校准
@@ -139,10 +139,8 @@ def write_3d3s_text(params, path):
         name3 = _sec_name_3d3s(spec, secname)
         if kind2 == "DB":
             out.append("%d, %d, DB, %s, %s, %s," % (tid, sid, name3, tname, name3))
-            out.append("1, 1, 1, 1, 1, 1, 0")
         else:
             out.append("%d, %d, VALUE, %s, %s, %s," % (tid, sid, name3, tname, _sec_data_3d3s(spec, secname)))
-            out.append("1, 1, 1, 1, 1, 1, 0")
     out.append("*SECT-COLOR")
     for tid, sid in sorted(sec_no.items()):
         out.append("%d, %d, 128, 128, 128" % (tid, sid))
