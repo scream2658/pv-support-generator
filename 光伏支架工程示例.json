@@ -44,6 +44,7 @@
     "wind_base": 0.35,
     "snow": 0.2,
     "roughness": "B类",
+    "site_class": "Ⅱ类",
     "mu_z": 1.1,
     "beta_z": 1.0,
     "coastal": 1.1,

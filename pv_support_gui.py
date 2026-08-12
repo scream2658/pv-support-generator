@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.8 — 界面骨架（MVP M1，2026-08-12 第十一版）
+光伏支架线模生成器 V1.2.9 — 界面骨架（MVP M1，2026-08-12 第十二版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.8 改动：
-    1. 省下拉显示规范全称（北京市/河北省/内蒙古自治区…），市区县联动保持；
-    2. 沿海风压放大改名为【沿海城市风压放大系数】，复选框改为经典勾选样式（✓）；
-    3. ② 支架形式示意图四周留白对称（不再贴边）；
-    4. ② 新增【斜梁长度】计算显示：= 端距×2 + (檩条数-1)×檩条间距，几何按此规则生成；
-    5. 榀数×柱距超限提醒改为自动换行，不再被截断；
-    6. 新增《需求文档.md》，按版本记录每次需求（可迭代、随仓库备份）。
+V1.2.9 改动（按界面标注）：
+    1. 去掉右上角"单位：mm / kN"显示；
+    2. ① 蓝色计算文字改为【组件阵列宽/组件阵列长】；
+    3. 角度单位改为中文"度"（倾角输入框与示意图标注）；
+    4. ③ 构件截面表：区块标题与列头（构件/规格/型号/材质等级）居中；
+    5. ④ 3D 预览：左下角 XYZ 坐标缩小，地面框改为虚线；
+    6. ⑤ 荷载参数：新增【场地类别】（Ⅰ~Ⅳ类）；沿海系数勾选框与数值框拉近。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -109,6 +109,7 @@ DEFAULT_PARAMS = {
         for role, spec, model, mat in MEMBER_ROLES
     },
     "loads": {"dead": 0.05, "wind_base": 0.35, "snow": 0.20, "roughness": "B类",
+              "site_class": "Ⅱ类",
               "mu_z": 1.10, "beta_z": 1.00, "coastal": 1.10, "coastal_enabled": False,
               "mu_s_pos": 1.30, "mu_s_neg": -1.30,
               "seismic": "7度(0.10g)",
@@ -208,7 +209,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.8")
+        root.title("光伏支架线模生成器 V1.2.9")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -226,7 +227,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.8：省显示规范全称；斜梁长度自动计算；需求文档随版本迭代")
+        self.set_status("就绪 V1.2.9：场地类别新增；坐标缩小；标题居中；阵列宽/长更名")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -252,7 +253,6 @@ class PvSupportApp:
         ttk.Button(bar, text="保存工程", command=self.save_project).pack(
             side="right", padx=(0, 6)
         )
-        ttk.Label(bar, text="单位：mm / kN　荷载 kN/m²").pack(side="right", padx=12)
 
     # ------------------------------------------------------------ 主区域
     def _build_main_area(self):
@@ -356,7 +356,7 @@ class PvSupportApp:
             return [e1, e2]
 
         self.calc_entries += pair(2, "最低点", "layout_ground_gap", "mm",
-                                     "倾角", "layout_tilt", "°")
+                                     "倾角", "layout_tilt", "度")
         self.calc_entries += pair(3, "前斜撑", "brace_front", "mm",
                                      "后斜撑", "brace_rear", "mm")
         self.calc_entries += pair(4, "檩条间距", "struct_purlin_interval", "mm",
@@ -406,13 +406,13 @@ class PvSupportApp:
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(8, 4))
+        grp = ttk.LabelFrame(parent, text="③ 构件截面表", labelanchor="n", padding=(8, 4))
         grp.pack(fill="x")
 
-        ttk.Label(grp, text="构件").grid(row=0, column=0, sticky="w", padx=(0, 6))
-        ttk.Label(grp, text="规格").grid(row=0, column=1, sticky="w", padx=(0, 4))
-        ttk.Label(grp, text="型号").grid(row=0, column=2, sticky="w", padx=(0, 6))
-        ttk.Label(grp, text="材质等级").grid(row=0, column=3, sticky="w")
+        ttk.Label(grp, text="构件", anchor="center").grid(row=0, column=0, sticky="ew", padx=(0, 6))
+        ttk.Label(grp, text="规格", anchor="center").grid(row=0, column=1, sticky="ew", padx=(0, 4))
+        ttk.Label(grp, text="型号", anchor="center").grid(row=0, column=2, sticky="ew", padx=(0, 6))
+        ttk.Label(grp, text="材质等级", anchor="center").grid(row=0, column=3, sticky="ew")
         grp.columnconfigure(2, weight=1)
 
         self.section_spec_cbs = {}
@@ -529,6 +529,12 @@ class PvSupportApp:
             grp, textvariable=self.vars["load_roughness"],
             values=ROUGHNESS_OPTIONS, state="readonly", width=5,
         ).grid(row=4, column=1, sticky="w", padx=(2, 6))
+        ttk.Label(grp, text="场地类别").grid(row=5, column=0, sticky="w", pady=2)
+        self.vars["site_class"] = tk.StringVar()
+        ttk.Combobox(
+            grp, textvariable=self.vars["site_class"],
+            values=["Ⅰ类", "Ⅱ类", "Ⅲ类", "Ⅳ类"], state="readonly", width=5,
+        ).grid(row=5, column=1, sticky="w", padx=(2, 6))
 
         # 中列：风压系数（竖向，含阵风系数、沿海放大系数）
         ttk.Label(
@@ -539,16 +545,18 @@ class PvSupportApp:
         entry(2, 2, "阵风系数", "load_beta_z", 1.00)
         entry(3, 2, "正压体型系数", "load_mu_s_pos", 1.30)
         entry(4, 2, "负压体型系数", "load_mu_s_neg", -1.30)
+        coast_frame = ttk.Frame(grp)
+        coast_frame.grid(row=5, column=4, columnspan=3, sticky="w", pady=2)
         self.vars["load_coastal_enabled"] = tk.BooleanVar(value=False)
         tk.Checkbutton(
-            grp, text="沿海城市风压放大系数", variable=self.vars["load_coastal_enabled"],
+            coast_frame, text="沿海城市风压放大系数", variable=self.vars["load_coastal_enabled"],
             command=self._toggle_coastal,
-        ).grid(row=5, column=4, columnspan=2, sticky="w", pady=2)
+        ).pack(side="left")
         self.vars["load_coastal"] = tk.StringVar()
         self.coastal_entry = ttk.Entry(
-            grp, textvariable=self.vars["load_coastal"], width=5, state="disabled",
+            coast_frame, textvariable=self.vars["load_coastal"], width=5, state="disabled",
         )
-        self.coastal_entry.grid(row=5, column=6, sticky="w", padx=(2, 6))
+        self.coastal_entry.pack(side="left", padx=(4, 0))
 
         # 下段：城市查表（省/市/区县/抗震设防 一行排布）
         ttk.Label(
@@ -777,7 +785,7 @@ class PvSupportApp:
             count = rows * cols
             power_kw = power * count / 1000
             self.calc_label.config(
-                text=f"组件总宽 {total_width:.0f} mm　组件总长 {total_length:.0f} mm\n"
+                text=f"组件阵列宽 {total_width:.0f} mm　组件阵列长 {total_length:.0f} mm\n"
                      f"阵列功率 ≈ {power_kw:.2f} kW（{count} 块 × {power:.0f} W）"
             )
             frames = int(float(self.vars["struct_frames"].get()))
@@ -923,7 +931,7 @@ class PvSupportApp:
         c.create_arc(ax - r, ay - r, ax + r, ay + r,
                      start=0, extent=-math.degrees(a), style="arc", outline="#757575")
         c.create_text(
-            ax + r * 0.78, ay - r * 0.5, text=f"{math.degrees(a):.0f}°",
+            ax + r * 0.78, ay - r * 0.5, text=f"{math.degrees(a):.0f}度",
             fill="#424242", font=("Microsoft YaHei UI", 9, "bold"),
         )
 
@@ -1008,10 +1016,10 @@ class PvSupportApp:
             lines.append(((p[0], y0, p[2]), (p[0], y1, p[2]), MEMBER_COLORS["檩条"]))
 
         # 地面框
-        lines.append(((0, y0, 0), (span, y0, 0), "#9e9e9e"))
-        lines.append(((span, y0, 0), (span, y1, 0), "#9e9e9e"))
-        lines.append(((span, y1, 0), (0, y1, 0), "#9e9e9e"))
-        lines.append(((0, y1, 0), (0, y0, 0), "#9e9e9e"))
+        lines.append(((0, y0, 0), (span, y0, 0), "#9e9e9e", (4, 3)))
+        lines.append(((span, y0, 0), (span, y1, 0), "#9e9e9e", (4, 3)))
+        lines.append(((span, y1, 0), (0, y1, 0), "#9e9e9e", (4, 3)))
+        lines.append(((0, y1, 0), (0, y0, 0), "#9e9e9e", (4, 3)))
 
         cxw, cyw, czw = span / 2, 0.0, maxh / 2
         yaw = self.view_yaw
@@ -1034,8 +1042,13 @@ class PvSupportApp:
             x1, y1, z1 = transform(x, y, z)
             return cx + x1 * scale, cy - z1 * scale * cp + y1 * scale * sp
 
-        for p1, p2, color in lines:
-            c.create_line(*proj(*p1), *proj(*p2), fill=color, width=2)
+        for item in lines:
+            if len(item) == 4:
+                p1, p2, color, dash = item
+                c.create_line(*proj(*p1), *proj(*p2), fill=color, width=1, dash=dash)
+            else:
+                p1, p2, color = item
+                c.create_line(*proj(*p1), *proj(*p2), fill=color, width=2)
 
         # 左下角独立小坐标（与支架分离，随旋转联动）
         bx0, by0 = 26.0, h - 46.0
@@ -1049,7 +1062,7 @@ class PvSupportApp:
             dx = (v[0] - o[0]) * scale
             dy = -(v[2] - o[2]) * scale * cp + (v[1] - o[1]) * scale * sp
             ln = math.hypot(dx, dy) or 1.0
-            ex, ey = dx / ln * 30, dy / ln * 30
+            ex, ey = dx / ln * 20, dy / ln * 20
             c.create_line(bx0, by0, bx0 + ex, by0 + ey, fill=color, width=2)
             c.create_text(bx0 + ex, by0 + ey - 5, text=label, fill=color,
                           font=("Microsoft YaHei UI", 9, "bold"))
@@ -1109,6 +1122,7 @@ class PvSupportApp:
                 "wind_base": f("load_wind_base"),
                 "snow": f("load_snow"),
                 "roughness": self.vars["load_roughness"].get(),
+                "site_class": self.vars["site_class"].get(),
                 "mu_z": f("load_mu_z"),
                 "beta_z": f("load_beta_z"),
                 "coastal": f("load_coastal") if self.vars["load_coastal_enabled"].get() else 1.0,
@@ -1180,6 +1194,7 @@ class PvSupportApp:
         if rough and "类" not in rough and rough in "ABCD":
             rough += "类"
         setv("load_roughness", rough)
+        setv("site_class", ld.get("site_class", "Ⅱ类"))
         setv("load_mu_z", ld.get("mu_z", 1.10))
         setv("load_beta_z", ld.get("beta_z", 1.00))
         coastal_enabled = ld.get("coastal_enabled", False)
