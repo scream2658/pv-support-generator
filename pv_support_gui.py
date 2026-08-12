@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.42 — 界面骨架（MVP M1，2026-08-13 第四十四版）
+光伏支架线模生成器 V1.2.43 — 界面骨架（MVP M1，2026-08-13 第四十五版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.43 改动（窗口整体收窄，右边界收到绿线）：
+    1. 窗口宽度 1120 → 860（root.geometry），整个界面右边界
+       收到右侧内容结束位置（原红线→绿线），右侧空白条消除；
+    2. 实测：窗口 860 时荷载参数区最右控件余量 22px，参数完整
+       不被遮挡（840 时余量 2px，820 起开始遮挡）；
+    3. 3D 预览缩放、参数计算、事件绑定、导出逻辑均未改动。
 
 V1.2.42 改动（截图批注：参数行填满 + 整体边距收紧）：
     1. ② 支架形式只读计算字段改为两行两列填满右侧空白：
@@ -251,8 +258,8 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.42")
-        root.geometry("1120x820")
+        root.title("光伏支架线模生成器 V1.2.43")
+        root.geometry("860x820")
         root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -269,7 +276,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.42：参数行已填满右侧，整体边距已收紧")
+        self.set_status("就绪 V1.2.43：窗口整体收窄，右侧空白已消除")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -404,7 +411,7 @@ class PvSupportApp:
                                      "倾角", "layout_tilt", "度")
         self.calc_entries += pair(3, "前斜撑距梁端", "brace_front_off", "mm",
                                      "后斜撑距梁端", "brace_rear_off", "mm")
-        ttk.Label(grp, text="端距").grid(row=4, column=0, sticky="w", pady=2)
+        ttk.Label(grp, text="檩条到梁端距离").grid(row=4, column=0, sticky="w", pady=2)
         self.vars["purlin_end_offset"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_end_offset"], width=5, justify="right")
         e.grid(row=4, column=1, sticky="w", padx=(4, 2))
