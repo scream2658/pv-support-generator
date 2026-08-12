@@ -340,7 +340,8 @@ class PvSupportApp:
             side="left", padx=(4, 16)
         )
 
-        ttk.Button(bar, text="打开工程", command=self.open_project).pack(side="right")
+        ttk.Button(bar, text="关于", command=self.show_about).pack(side="right", padx=(0, 6))
+        ttk.Button(bar, text="打开工程", command=self.open_project).pack(side="right", padx=(0, 6))
         ttk.Button(bar, text="保存工程", command=self.save_project).pack(
             side="right", padx=(0, 6)
         )
@@ -1559,6 +1560,28 @@ class PvSupportApp:
         with open(path, "w", encoding="utf-8") as fp:
             json.dump(params, fp, ensure_ascii=False, indent=2)
         self.set_status(f"工程已保存：{path}")
+
+    def show_about(self):
+        """软件介绍对话框。"""
+        messagebox.showinfo(
+            "关于 光伏支架线模生成器",
+            "光伏支架线模生成器 V0.2.0（正式版，2026-08-13）\n"
+            "\n"
+            "功能：\n"
+            "· ① 组件参数：组件库/尺寸/功率/阵列，自动计算阵列宽长与功率\n"
+            "· ② 支架形式：侧面示意（缩放/平移），自动计算悬挑/总长/立柱/斜梁/斜撑\n"
+            "· ③ 构件截面表：规格/型号/材质，内置 3D3S 真实截面库（381 型号）\n"
+            "· ④ 3D 线框预览：中键旋转（Z 轴竖直）、右键平移、滚轮缩放\n"
+            "· ⑤ 荷载参数：城市查表（GB50009-2012）+ 抗震设防自动匹配\n"
+            "\n"
+            "导出：\n"
+            "· DXF 线模（含截面信息）\n"
+            "· 3D3S 文本模型 / Excel\n"
+            "· SAP2000 .s2k（0 错误导入）\n"
+            "\n"
+            "运行：python pv_support_gui.py\n"
+            "GitHub：https://github.com/scream2658/pv-support-generator",
+        )
 
     def open_project(self):
         path = filedialog.askopenfilename(
