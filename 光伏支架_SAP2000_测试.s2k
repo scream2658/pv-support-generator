@@ -1,5 +1,5 @@
 TABLE:  "PROGRAM CONTROL"
-   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"   SteelCode="Chinese 2018"
+   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"
 
 TABLE:  "ACTIVE DEGREES OF FREEDOM"
    UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes
@@ -19,8 +19,8 @@ TABLE:  "MATERIAL PROPERTIES 02 - BASIC MECHANICAL PROPERTIES"
    Material=Q355   UnitWeight=7.7E-05   UnitMass=7.85E-09   E1=206000   G12=79230.76923076923   U12=0.3   A1=1.2E-05
 
 TABLE:  "MATERIAL PROPERTIES 03A - STEEL DATA"
-   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic
-   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic
+   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1
+   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1
 
 TABLE:  "FRAME SECTION PROPERTIES 01 - GENERAL"
    SectionName=Á¢Öù-²Û8   Material=Q235   Shape=Channel   t3=80   t2=43   tf=8.0   tw=5.0   FilletRadius=0   Area=1024.8   TorsConst=6916.666666666666   I33=1013000.0   I22=166000.0   I23=0   AS2=0   AS3=0   S33Top=25300.0   S33Bot=25300.0   S22Left=7800.0   S22Right=7800.0   Z33=0   Z22=0   R33=31.440190173688347   R22=12.727247381788889   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
@@ -144,46 +144,46 @@ TABLE:  "CONNECTIVITY - FRAME"
    Frame=40   JointI=70   JointJ=71   IsCurved=No
 
 TABLE:  "FRAME SECTION ASSIGNMENTS"
-   Frame=1   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=2   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=3   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=4   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=5   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=6   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=7   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=8   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=9   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=10   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=11   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=12   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=13   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=14   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=15   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=16   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=17   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=18   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=19   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=20   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=21   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=22   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=23   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=24   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=25   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=26   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=27   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=28   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=29   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=30   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=31   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=32   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=33   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
-   Frame=34   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=35   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=36   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
-   Frame=37   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
-   Frame=38   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
-   Frame=39   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
-   Frame=40   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
+   Frame=1   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=2   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=3   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=4   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=5   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=6   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=7   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=8   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=9   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=10   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=11   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=12   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=13   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=14   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=15   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=16   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=17   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=18   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=19   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=20   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=21   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=22   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=23   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=24   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=25   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=26   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=27   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=28   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=29   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=30   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=31   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=32   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=33   SectionType=Channel   AutoSelect=N.A.   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Default
+   Frame=34   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Default
+   Frame=35   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=36   SectionType=Angle   AutoSelect=N.A.   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Default
+   Frame=37   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Default
+   Frame=38   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Default
+   Frame=39   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Default
+   Frame=40   SectionType="Cold Formed C"   AutoSelect=N.A.   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Default
 
 TABLE:  "JOINT RESTRAINT ASSIGNMENTS"
    Joint=1   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
@@ -239,10 +239,10 @@ TABLE:  "FRAME LOCAL AXES ASSIGNMENTS 1 - TYPICAL"
    Frame=40   Angle=160   AdvanceAxes=No
 
 TABLE:  "LOAD PATTERN DEFINITIONS"
-   LoadPat=DEAD   DesignType=Dead   SelfWtMult=1
-   LoadPat=snow   DesignType=Snow   SelfWtMult=0
-   LoadPat=wp     DesignType=Wind   SelfWtMult=0
-   LoadPat=wz     DesignType=Wind   SelfWtMult=0
+   LoadPat=DEAD   DesignType=Dead   SelfWtMult=1   AutoLoad=None
+   LoadPat=snow   DesignType=Snow   SelfWtMult=0   AutoLoad=None
+   LoadPat=wp     DesignType=Wind   SelfWtMult=0   AutoLoad=None
+   LoadPat=wz     DesignType=Wind   SelfWtMult=0   AutoLoad=None
 
 TABLE:  "LOAD CASE DEFINITIONS"
    Case=DEAD   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   DesignType=Dead   DesActOpt="Prog Det"   DesignAct=Non-Composite   AutoType=None   RunCase=Yes   CaseStatus="Not Run"
@@ -259,20 +259,28 @@ TABLE:  "CASE - STATIC 1 - LOAD ASSIGNMENTS"
 TABLE:  "FRAME LOADS - DISTRIBUTED"
    Frame=37   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2215   FOverLB=0.2215
    Frame=37   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2800   FOverLB=0.2800
-   Frame=37   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
-   Frame=37   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+   Frame=37   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2636   FOverLB=0.2636
+   Frame=37   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7243   FOverLB=-0.7243
+   Frame=37   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.2636   FOverLB=-0.2636
+   Frame=37   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.7243   FOverLB=0.7243
    Frame=38   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.1818   FOverLB=0.1818
    Frame=38   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2298   FOverLB=0.2298
-   Frame=38   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
-   Frame=38   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=38   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2164   FOverLB=0.2164
+   Frame=38   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.5944   FOverLB=-0.5944
+   Frame=38   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.2164   FOverLB=-0.2164
+   Frame=38   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.5944   FOverLB=0.5944
    Frame=39   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.1818   FOverLB=0.1818
    Frame=39   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2298   FOverLB=0.2298
-   Frame=39   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
-   Frame=39   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=39   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2164   FOverLB=0.2164
+   Frame=39   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.5944   FOverLB=-0.5944
+   Frame=39   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.2164   FOverLB=-0.2164
+   Frame=39   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.5944   FOverLB=0.5944
    Frame=40   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2215   FOverLB=0.2215
    Frame=40   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2800   FOverLB=0.2800
-   Frame=40   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
-   Frame=40   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+   Frame=40   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2636   FOverLB=0.2636
+   Frame=40   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7243   FOverLB=-0.7243
+   Frame=40   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=X   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.2636   FOverLB=-0.2636
+   Frame=40   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=Z   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.7243   FOverLB=0.7243
 
 TABLE:  "COMBINATION DEFINITIONS"
    ComboName=1.3D+1.5Wz+1.5*0.7Sn   ComboType="Linear Add"   AutoDesign=No   CaseType="Linear Static"   CaseName=DEAD   ScaleFactor=1.3   SteelDesign=None
@@ -288,49 +296,49 @@ TABLE:  "COMBINATION DEFINITIONS"
    ComboName=1.0D+1.0Wz   CaseType="Linear Static"   CaseName=wz   ScaleFactor=1
 
 TABLE:  "GROUPS 1 - DEFINITIONS"
-   GroupName=Á¢Öù   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
-   GroupName=Ð±Áº   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
-   GroupName=Ð±³Å   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
-   GroupName=éÝÌõ   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
+   GroupName=COLUMN   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No   Color=Yellow
+   GroupName=BEAM   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No   Color=Yellow
+   GroupName=BRACE   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No   Color=Yellow
+   GroupName=PURLIN   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No   Color=Yellow
 
 TABLE:  "GROUPS 2 - ASSIGNMENTS"
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=1
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=2
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=3
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=4
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=5
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=6
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=7
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=8
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=9
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=10
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=11
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=12
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=13
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=14
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=15
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=16
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=17
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=18
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=19
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=20
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=21
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=22
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=23
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=24
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=25
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=26
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=27
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=28
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=29
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=30
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=31
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=32
-   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=33
-   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=34
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=35
-   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=36
-   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=37
-   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=38
-   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=39
-   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=40
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=1
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=2
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=3
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=4
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=5
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=6
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=7
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=8
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=9
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=10
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=11
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=12
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=13
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=14
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=15
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=16
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=17
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=18
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=19
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=20
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=21
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=22
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=23
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=24
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=25
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=26
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=27
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=28
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=29
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=30
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=31
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=32
+   GroupName=COLUMN   ObjectType=Frame   ObjectLabel=33
+   GroupName=BEAM   ObjectType=Frame   ObjectLabel=34
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=35
+   GroupName=BRACE   ObjectType=Frame   ObjectLabel=36
+   GroupName=PURLIN   ObjectType=Frame   ObjectLabel=37
+   GroupName=PURLIN   ObjectType=Frame   ObjectLabel=38
+   GroupName=PURLIN   ObjectType=Frame   ObjectLabel=39
+   GroupName=PURLIN   ObjectType=Frame   ObjectLabel=40

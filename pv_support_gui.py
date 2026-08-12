@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.35 — 界面骨架（MVP M1，2026-08-12 第三十八版）
+光伏支架线模生成器 V1.2.37 — 界面骨架（MVP M1，2026-08-12 第三十九版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.35 改动（SAP2000 导入修正）：
-    1. 截面行补 tf 列：Channel/Angle 带翼缘厚，C 型钢用
-       Shape="Cold Formed C" + LipDepth（修复立柱/斜撑显示成线、
-       斜梁/檩条截面夸张的问题）；
-    2. 荷载工况格式修正：Type=LinStatic、InitialCond=Zero、
-       LoadType="Load pattern"（修复荷载工况 0/4 导入失败）；
-    3. 檩条角度 SAP2000 单独设 160°（3D3S 70°+90°），
-       其余与 3D3S 一致。
+V1.2.37 改动（SAP2000 收尾）：
+    1. 0 错误确认；42 警告中 40 条为 AutoSelect=No 不被识别，
+       已改为样本写法 AutoSelect=N.A.，并照样本用 SectionType=形状名、
+       MatProp=Default；
+    2. 风压方向改为垂直于斜梁面：wz 正风压（压向板面）、
+       wp 风吸力（吸离板面），方向相反；
+       采用 Global X + Global Z 双分量表达（SAP2000 单方向荷载的限制）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -217,7 +216,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.35")
+        root.title("光伏支架线模生成器 V1.2.37")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -235,7 +234,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.35：SAP2000 截面/荷载工况格式修正，檩条角度160°")
+        self.set_status("就绪 V1.2.37：SAP2000 0错误，风压垂直于梁面（正负相反）")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):

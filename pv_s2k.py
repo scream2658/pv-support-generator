@@ -33,6 +33,9 @@ CHANNEL_TF = {"槽8": 8.0, "槽10": 8.5, "槽12": 9.0, "槽14a": 9.5, "槽16a": 
 # SAP2000 局部轴转角（与 3D3S 定版值相差 90°，仅檩条不同）
 S2K_ANGLE = {"斜梁": 0, "檩条": 160, "斜撑": 90, "立柱": 180}
 
+# SAP2000 分组名用 ASCII（避免中文组名警告/截断）
+GROUP_ASCII = {"立柱": "COLUMN", "斜梁": "BEAM", "檩条": "PURLIN", "斜撑": "BRACE"}
+
 
 def _dims(spec, model):
     for name, dims in SECTIONS.get(spec, []):
@@ -120,8 +123,10 @@ def _mat_mech():
 
 def _mat_steel():
     return [
-        '   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic',
-        '   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic',
+        '   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   '
+        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1',
+        '   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   '
+        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1',
     ]
 
 
@@ -152,7 +157,7 @@ def write_s2k(params, path):
     out = []
     out.append('TABLE:  "PROGRAM CONTROL"')
     out.append('   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   '
-               'CurrUnits="N, mm, C"   SteelCode="Chinese 2018"')
+               'CurrUnits="N, mm, C"')
     out.append('')
     out.append('TABLE:  "ACTIVE DEGREES OF FREEDOM"')
     out.append('   UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes')
@@ -207,8 +212,9 @@ def write_s2k(params, path):
         sec = params.get("sections", {}).get(kind, {})
         name = "%s-%s" % (kind, sec.get("model", "自定义").replace("×", "x"))
         mat = sections[name][0]
-        out.append('   Frame=%d   SectionType=Frame   AutoSelect=No   AnalSect=%s   DesignSect=%s   MatProp=%s'
-                   % (i, name, name, mat))
+        stype = SHAPE.get(sec.get("spec", ""), "Frame")
+        out.append('   Frame=%d   SectionType=%s   AutoSelect=N.A.   AnalSect=%s   DesignSect=%s   MatProp=Default'
+                   % (i, stype, name, name))
     out.append('')
 
     # 支座
@@ -225,10 +231,10 @@ def write_s2k(params, path):
 
     # 荷载工况
     out.append('TABLE:  "LOAD PATTERN DEFINITIONS"')
-    out.append('   LoadPat=DEAD   DesignType=Dead   SelfWtMult=1')
-    out.append('   LoadPat=snow   DesignType=Snow   SelfWtMult=0')
-    out.append('   LoadPat=wp     DesignType=Wind   SelfWtMult=0')
-    out.append('   LoadPat=wz     DesignType=Wind   SelfWtMult=0')
+    out.append('   LoadPat=DEAD   DesignType=Dead   SelfWtMult=1   AutoLoad=None')
+    out.append('   LoadPat=snow   DesignType=Snow   SelfWtMult=0   AutoLoad=None')
+    out.append('   LoadPat=wp     DesignType=Wind   SelfWtMult=0   AutoLoad=None')
+    out.append('   LoadPat=wz     DesignType=Wind   SelfWtMult=0   AutoLoad=None')
     out.append('')
     out.append('TABLE:  "LOAD CASE DEFINITIONS"')
     for case, dtype, dact in (
@@ -257,6 +263,8 @@ def write_s2k(params, path):
 
     purlin_frames = [i for i, (kind, _a, _b) in enumerate(members, start=1) if kind == "檩条"]
     _, trib = _purlin_tributaries(params)
+    alpha = math.radians(layout.get("tilt", 20))
+    sa, ca = math.sin(alpha), math.cos(alpha)
     out.append('TABLE:  "FRAME LOADS - DISTRIBUTED"')
     for k, fid in enumerate(purlin_frames):
         t = trib[k % len(trib)]
@@ -270,12 +278,20 @@ def write_s2k(params, path):
         out.append('   Frame=%d   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   '
                    'DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=%.4f   FOverLB=%.4f'
                    % (fid, q_snow, q_snow))
-        out.append('   Frame=%d   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   '
+        # 正风压 wz：垂直于斜梁面朝下（压向板面），方向 (sin a, 0, -cos a)
+        out.append('   Frame=%d   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=X   '
                    'DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=%.4f   FOverLB=%.4f'
-                   % (fid, -q_wp, -q_wp))
-        out.append('   Frame=%d   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   '
+                   % (fid, q_wz * sa, q_wz * sa))
+        out.append('   Frame=%d   LoadPat=wz   CoordSys=GLOBAL   Type=Force   Dir=Z   '
                    'DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=%.4f   FOverLB=%.4f'
-                   % (fid, -q_wz, -q_wz))
+                   % (fid, -q_wz * ca, -q_wz * ca))
+        # 负风压 wp：垂直于斜梁面朝上（吸力），方向 (-sin a, 0, +cos a)
+        out.append('   Frame=%d   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=X   '
+                   'DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=%.4f   FOverLB=%.4f'
+                   % (fid, -q_wp * sa, -q_wp * sa))
+        out.append('   Frame=%d   LoadPat=wp   CoordSys=GLOBAL   Type=Force   Dir=Z   '
+                   'DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=%.4f   FOverLB=%.4f'
+                   % (fid, q_wp * ca, q_wp * ca))
     out.append('')
 
     # 荷载组合（光伏规范 NB/T 10115 常用组合）
@@ -307,11 +323,13 @@ def write_s2k(params, path):
         if kind not in kinds:
             kinds.append(kind)
     for kind in kinds:
-        out.append('   GroupName=%s   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No' % kind)
+        out.append('   GroupName=%s   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No   Color=Yellow'
+                   % GROUP_ASCII.get(kind, kind))
     out.append('')
     out.append('TABLE:  "GROUPS 2 - ASSIGNMENTS"')
     for i, (kind, _a, _b) in enumerate(members, start=1):
-        out.append('   GroupName=%s   ObjectType=Frame   ObjectLabel=%d' % (kind, i))
+        out.append('   GroupName=%s   ObjectType=Frame   ObjectLabel=%d'
+                   % (GROUP_ASCII.get(kind, kind), i))
     out.append('')
 
     with open(path, "w", encoding="gbk", errors="replace") as fh:
