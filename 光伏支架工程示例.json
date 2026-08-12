@@ -26,6 +26,7 @@
     "purlin_interval": 1500,
     "purlin_end_offset": 150,
     "purlin_extension": 150,
+    "brace_ground": 300,
     "brace_front": 960,
     "brace_rear": 1808
   },

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.6 — 界面骨架（MVP M1，2026-08-12 第九版）
+光伏支架线模生成器 V1.2.7 — 界面骨架（MVP M1，2026-08-12 第十版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.6 改动：
-    1. 默认城市=北京/北京，启动即带真实风压/雪压（0.45/0.40，锁定不可改）；
-    2. 城市查表增加【区县】级下拉（抗震设防按县/区区分，数据接入后启用）；
-    3. 沿海放大改为复选框：勾选才启用放大系数输入，不勾选默认 1.0；
-    4. “品数”改为“榀数”（木字旁，一榀框架），3D 显示“X 榀”；
-    5. 单立柱补上后斜撑（前/后斜撑都有）；
-    6. 榀数×柱距 > 组件阵列总长时给出红色提醒；
-    7. 新增【檩条外伸】参数（默认 150mm，压块安装用），自动显示檩条总长。
+V1.2.7 改动：
+    1. 窗口整体收窄（1120×820），布局更紧凑，消除右侧大块空白；
+    2. ⑤ 荷载参数改为两段式：上段=基本荷载+风压系数，下段=城市查表
+       （省/市/区县/抗震设防一行排布，区县紧跟在省市后面）；
+    3. ④ 3D 预览：XYZ 坐标移到左下角独立小坐标（与支架分离，随旋转联动）；
+    4. ② 新增【斜撑离地】参数（默认 300mm，斜撑从立柱离地处起斜向斜梁）；
+    5. 抗震设防数据已接入：省→市→区县自动匹配烈度（GB50011-2010 附录A，
+       自动抽取，个别区县名可能有 OCR 错字需人工核对）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -86,7 +86,7 @@ DEFAULT_PARAMS = {
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
     "structure": {"type": "单立柱", "bay": 2000, "frames": 3,
                   "purlin_interval": 1500, "purlin_end_offset": 150,
-                  "purlin_extension": 150,
+                  "purlin_extension": 150, "brace_ground": 300,
                   "brace_front": 960, "brace_rear": 1808},
     "sections": {
         role: {"spec": spec, "model": model, "material": mat}
@@ -192,8 +192,8 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.6")
-        root.geometry("1280x840")
+        root.title("光伏支架线模生成器 V1.2.7")
+        root.geometry("1120x820")
         root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -210,7 +210,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.6：默认北京/北京，风压/雪载按规范锁定；3D 按榀数生成")
+        self.set_status("就绪 V1.2.7：默认北京/北京锁定；抗震设防按省-市-区县匹配；窗口更紧凑")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -360,12 +360,19 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
 
-        ttk.Label(grp, text="檩条外伸").grid(row=6, column=0, sticky="w", pady=2)
-        self.vars["purlin_extension"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5)
+        ttk.Label(grp, text="斜撑离地").grid(row=6, column=0, sticky="w", pady=2)
+        self.vars["brace_ground"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5)
         e.grid(row=6, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="檩条外伸").grid(row=6, column=3, sticky="w", pady=2)
+        self.vars["purlin_extension"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5)
+        e.grid(row=6, column=4, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
         self.purlin_len_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
@@ -523,60 +530,55 @@ class PvSupportApp:
         )
         self.coastal_entry.grid(row=5, column=6, sticky="w", padx=(2, 6))
 
-        # 右列：城市查表（省/市一行）+ 抗震设防烈度
+        # 下段：城市查表（省/市/区县/抗震设防 一行排布）
         ttk.Label(
-            grp, text="城市查表（50年重现期）", foreground="#616161",
+            grp, text="城市查表（50年重现期）· 抗震设防", foreground="#616161",
             font=("Microsoft YaHei UI", 9, "bold"),
-        ).grid(row=0, column=8, columnspan=4, sticky="w", pady=(0, 2))
+        ).grid(row=7, column=0, columnspan=12, sticky="w", pady=(6, 2))
 
-        ttk.Label(grp, text="省").grid(row=1, column=8, sticky="w", pady=2)
+        ttk.Label(grp, text="省").grid(row=8, column=0, sticky="w", pady=2)
         self.vars["city_prov"] = tk.StringVar()
         self.prov_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_prov"],
             values=[MANUAL_PROVINCE] + sorted(self.city_data.keys()),
             state="readonly", width=5,
         )
-        self.prov_cb.grid(row=1, column=9, sticky="w", padx=(2, 6))
+        self.prov_cb.grid(row=8, column=1, sticky="w", padx=(2, 8))
         self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
 
-        ttk.Label(grp, text="市").grid(row=1, column=10, sticky="w", pady=2)
+        ttk.Label(grp, text="市").grid(row=8, column=2, sticky="w", pady=2)
         self.vars["city_name"] = tk.StringVar()
         self.city_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_name"], state="readonly", width=9,
         )
-        self.city_cb.grid(row=1, column=11, sticky="w", padx=(2, 4))
+        self.city_cb.grid(row=8, column=3, sticky="w", padx=(2, 8))
         self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
 
-        self.city_result_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
+        ttk.Label(grp, text="区县").grid(row=8, column=4, sticky="w", pady=2)
+        self.vars["city_district"] = tk.StringVar()
+        self.district_cb = ttk.Combobox(
+            grp, textvariable=self.vars["city_district"], state="disabled", width=10,
         )
-        self.city_result_label.grid(row=2, column=8, columnspan=4, sticky="w", pady=(2, 0))
+        self.district_cb.grid(row=8, column=5, sticky="w", padx=(2, 8))
+        self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
 
-        ttk.Label(grp, text="抗震设防").grid(row=3, column=8, sticky="w", pady=2)
+        ttk.Label(grp, text="抗震设防").grid(row=8, column=6, sticky="w", pady=2)
         self.vars["seismic"] = tk.StringVar()
         ttk.Combobox(
             grp, textvariable=self.vars["seismic"],
             values=SEISMIC_OPTIONS, state="readonly", width=9,
-        ).grid(row=3, column=9, columnspan=3, sticky="w", padx=(2, 4))
-        ttk.Label(
-            grp, foreground="#757575",
-            text="抗震数据待补充：放入 GB50011-2010 / GB18306-2015 后自动按城市匹配",
-            wraplength=300,
-        ).grid(row=4, column=8, columnspan=4, sticky="w", pady=(0, 2))
+        ).grid(row=8, column=7, sticky="w", padx=(2, 8))
 
-        ttk.Label(grp, text="区县").grid(row=5, column=8, sticky="w", pady=2)
-        self.vars["city_district"] = tk.StringVar()
-        self.district_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_district"], state="disabled", width=9,
+        self.city_result_label = ttk.Label(
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
         )
-        self.district_cb.grid(row=5, column=9, columnspan=3, sticky="w", padx=(2, 4))
-        self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
+        self.city_result_label.grid(row=9, column=0, columnspan=12, sticky="w", pady=(2, 0))
 
         ttk.Label(
             grp, foreground="#757575",
-            text="沿海风压放大：按需勾选，勾选后按 1.1 倍放大；选定城市后风压/雪载自动锁定",
-            wraplength=560,
-        ).grid(row=6, column=0, columnspan=12, sticky="w", pady=(4, 0))
+            text="沿海风压放大按需勾选；选定城市后风压/雪载锁定；抗震烈度按省-市-区县自动匹配",
+            wraplength=1000,
+        ).grid(row=10, column=0, columnspan=12, sticky="w", pady=(2, 0))
 
     def _build_status_bar(self):
         self.status = ttk.Label(
@@ -602,6 +604,11 @@ class PvSupportApp:
                 self.seismic_data = json.load(fp).get("data", {})
         except (OSError, json.JSONDecodeError):
             self.seismic_data = {}
+
+    @staticmethod
+    def _norm_prov(name):
+        return (name.replace("省", "").replace("壮族", "").replace("回族", "")
+                .replace("维吾尔", "").replace("自治区", "").replace("特别行政区", ""))
 
     def _set_load_locked(self, locked):
         state = "disabled" if locked else "normal"
@@ -646,25 +653,28 @@ class PvSupportApp:
         )
         self._set_load_locked(True)
         # 区县级抗震数据（若有）
-        districts = sorted(self.seismic_data.get(prov, {}).get(city, {}).keys())
-        if districts:
-            self.district_cb.configure(values=districts, state="readonly")
+        se_city = self.seismic_data.get(self._norm_prov(prov), {}).get(city, {})
+        se_districts = se_city.get("districts", [])
+        if se_districts:
+            self.district_cb.configure(values=se_districts, state="readonly")
             self.vars["city_district"].set("")
+            best = max(se_city.get("entries", []), key=lambda e: len(e.get("districts", [])))
+            if best.get("intensity") in SEISMIC_OPTIONS:
+                self.vars["seismic"].set(best["intensity"])
         else:
             self.district_cb.configure(values=[], state="disabled")
             self.vars["city_district"].set("")
-        # 抗震设防烈度：若已补充规范数据则自动匹配
-        se = self.seismic_data.get(prov, {}).get(city)
-        if se and se.get("intensity") in SEISMIC_OPTIONS:
-            self.vars["seismic"].set(se["intensity"])
 
     def _on_district_change(self, _event=None):
         prov = self.vars["city_prov"].get()
         city = self.vars["city_name"].get()
         district = self.vars["city_district"].get()
-        rec = self.seismic_data.get(prov, {}).get(city, {}).get(district)
-        if rec and rec.get("intensity") in SEISMIC_OPTIONS:
-            self.vars["seismic"].set(rec["intensity"])
+        se_city = self.seismic_data.get(self._norm_prov(prov), {}).get(city, {})
+        for e in se_city.get("entries", []):
+            if district in e.get("districts", []):
+                if e.get("intensity") in SEISMIC_OPTIONS:
+                    self.vars["seismic"].set(e["intensity"])
+                break
 
     # ------------------------------------------------------------ 联动逻辑
     def _on_lib_change(self, _event=None):
@@ -822,8 +832,9 @@ class PvSupportApp:
         try:
             brace_front = float(self.vars["brace_front"].get())
             brace_rear = float(self.vars["brace_rear"].get())
+            brace_ground = float(self.vars["brace_ground"].get())
         except (ValueError, tk.TclError):
-            brace_front, brace_rear = 960, 1808
+            brace_front, brace_rear, brace_ground = 960, 1808, 300
 
         maxh = ground + rise
         m = 30
@@ -853,11 +864,11 @@ class PvSupportApp:
             c.create_line(*P(span, 0), bx, by, fill=MEMBER_COLORS["立柱"], width=3)
             if 0 < brace_front < slope:
                 fx, fy = P(brace_front * math.cos(a), ground + brace_front * math.sin(a))
-                c.create_line(*P(0, 0), fx, fy, fill=MEMBER_COLORS["斜撑"], width=2)
+                c.create_line(*P(0, brace_ground), fx, fy, fill=MEMBER_COLORS["斜撑"], width=2)
             if 0 < brace_rear < slope:
                 t_rear = slope - brace_rear
                 rx, ry = P(t_rear * math.cos(a), ground + t_rear * math.sin(a))
-                c.create_line(*P(span, 0), rx, ry, fill=MEMBER_COLORS["斜撑"], width=2)
+                c.create_line(*P(span, brace_ground), rx, ry, fill=MEMBER_COLORS["斜撑"], width=2)
         else:
             # 单立柱：立于斜梁中心正下方（支架左右平衡）
             mid_x = span / 2
@@ -866,11 +877,11 @@ class PvSupportApp:
             t_b = span / 2 - brace_front
             if 0 < t_b < slope:
                 bx2, by2 = P(t_b * math.cos(a), ground + t_b * math.sin(a))
-                c.create_line(*P(mid_x, 0), bx2, by2, fill=MEMBER_COLORS["斜撑"], width=2)
+                c.create_line(*P(mid_x, brace_ground), bx2, by2, fill=MEMBER_COLORS["斜撑"], width=2)
             t_r = span / 2 + brace_rear
             if 0 < t_r < slope:
                 rx2, ry2 = P(t_r * math.cos(a), ground + t_r * math.sin(a))
-                c.create_line(*P(mid_x, 0), rx2, ry2, fill=MEMBER_COLORS["斜撑"], width=2)
+                c.create_line(*P(mid_x, brace_ground), rx2, ry2, fill=MEMBER_COLORS["斜撑"], width=2)
 
         for t in self._purlin_positions(slope):
             px, py = P(t * math.cos(a), ground + t * math.sin(a))
@@ -925,8 +936,9 @@ class PvSupportApp:
             frames = int(float(self.vars["struct_frames"].get()))
             brace_front = float(self.vars["brace_front"].get())
             brace_rear = float(self.vars["brace_rear"].get())
+            brace_ground = float(self.vars["brace_ground"].get())
         except (ValueError, tk.TclError):
-            bay, frames, brace_front, brace_rear = 2000, 3, 960, 1808
+            bay, frames, brace_front, brace_rear, brace_ground = 2000, 3, 960, 1808, 300
 
         frames = max(1, min(12, frames))
         maxh = ground + rise
@@ -944,10 +956,10 @@ class PvSupportApp:
                 lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
                 if 0 < brace_front < slope:
                     p = beam_pt(brace_front, y)
-                    lines.append(((0, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                    lines.append(((0, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
                 if 0 < brace_rear < slope:
                     p = beam_pt(slope - brace_rear, y)
-                    lines.append(((span, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                    lines.append(((span, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
             else:
                 # 单立柱：斜梁中心正下方
                 mid_x = span / 2
@@ -957,11 +969,11 @@ class PvSupportApp:
                 t_b = span / 2 - brace_front
                 if 0 < t_b < slope:
                     p = beam_pt(t_b, y)
-                    lines.append(((mid_x, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                    lines.append(((mid_x, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
                 t_r = span / 2 + brace_rear
                 if 0 < t_r < slope:
                     p = beam_pt(t_r, y)
-                    lines.append(((mid_x, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                    lines.append(((mid_x, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
 
         # 檩条：横跨所有品
         y0, y1 = frame_ys[0], frame_ys[-1]
@@ -999,15 +1011,21 @@ class PvSupportApp:
         for p1, p2, color in lines:
             c.create_line(*proj(*p1), *proj(*p2), fill=color, width=2)
 
-        axis = [
-            ((0, 0, 0), (maxdim * 0.35, 0, 0), "#e53935", "X"),
-            ((0, 0, 0), (0, maxdim * 0.35, 0), "#43a047", "Y"),
-            ((0, 0, 0), (0, 0, maxdim * 0.35), "#1e88e5", "Z"),
-        ]
-        for a0, b0, color, label in axis:
-            c.create_line(*proj(*a0), *proj(*b0), fill=color, width=2)
-            x, y = proj(*b0)
-            c.create_text(x, y - 5, text=label, fill=color,
+        # 左下角独立小坐标（与支架分离，随旋转联动）
+        bx0, by0 = 26.0, h - 46.0
+        o = transform(cxw, 0.0, czw)
+        for vx, vy, vz, color, label in (
+            (maxdim * 0.3, 0, 0, "#e53935", "X"),
+            (0, maxdim * 0.3, 0, "#43a047", "Y"),
+            (0, 0, maxdim * 0.3, "#1e88e5", "Z"),
+        ):
+            v = transform(cxw + vx, 0.0 + vy, czw + vz)
+            dx = (v[0] - o[0]) * scale
+            dy = -(v[2] - o[2]) * scale * cp + (v[1] - o[1]) * scale * sp
+            ln = math.hypot(dx, dy) or 1.0
+            ex, ey = dx / ln * 30, dy / ln * 30
+            c.create_line(bx0, by0, bx0 + ex, by0 + ey, fill=color, width=2)
+            c.create_text(bx0 + ex, by0 + ey - 5, text=label, fill=color,
                           font=("Microsoft YaHei UI", 9, "bold"))
 
         c.create_text(
@@ -1048,6 +1066,7 @@ class PvSupportApp:
                 "purlin_interval": f("struct_purlin_interval"),
                 "purlin_end_offset": f("purlin_end_offset"),
                 "purlin_extension": f("purlin_extension"),
+                "brace_ground": f("brace_ground"),
                 "brace_front": f("brace_front"),
                 "brace_rear": f("brace_rear"),
             },
@@ -1109,6 +1128,7 @@ class PvSupportApp:
         setv("struct_purlin_interval", st.get("purlin_interval", 1500))
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
         setv("purlin_extension", st.get("purlin_extension", 150))
+        setv("brace_ground", st.get("brace_ground", 300))
         setv("brace_front", st.get("brace_front", 960))
         setv("brace_rear", st.get("brace_rear", 1808))
         for role, _, _, _ in MEMBER_ROLES:
