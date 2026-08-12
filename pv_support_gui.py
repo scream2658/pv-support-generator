@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.15 — 界面骨架（MVP M1，2026-08-12 第十八版）
+光伏支架线模生成器 V1.2.16 — 界面骨架（MVP M1，2026-08-12 第十九版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.15 改动：
-    1. "品间距"改回"柱距"（更符合工程命名）；
-    2. 檩条悬挑、斜梁长度、檩条总长三个推导结果改为灰显锁定
-       （与风压/雪载锁定样式一致，不可编辑）。
+V1.2.16 改动（前/后斜撑长度按余弦定理计算）：
+    1. 新增两个输入参数：前斜撑距梁端（距斜梁下端，默认350）、
+       后斜撑距梁端（距斜梁上端，默认350）；
+    2. 立柱高度 = 最低点高度 + 斜梁半长×sin(倾角)；
+    3. 前斜撑长度 = √(a²+b²−2ab·cos(90°−倾角))，
+       后斜撑长度 = √(a²+b²−2ab·cos(90°+倾角))，
+       其中 a = 立柱高度−斜撑离地，b = 斜梁半长−距梁端（单立柱，梁中点立柱）；
+    4. 立柱高度、前斜撑长度、后斜撑长度均为灰显推导值；
+    5. 2D/3D 示意图斜撑上端点按"距梁端"参数定位。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -99,7 +104,7 @@ DEFAULT_PARAMS = {
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
     "structure": {"type": "单立柱", "bay": 2000, "frames": 8,
                   "purlin_end_offset": 150, "purlin_extension": 150,
-                  "brace_ground": 300, "brace_front": 960, "brace_rear": 1808},
+                  "brace_ground": 300, "brace_front_off": 350, "brace_rear_off": 350},
     "sections": {
         role: {"spec": spec, "model": model, "material": mat}
         for role, spec, model, mat in MEMBER_ROLES
@@ -205,7 +210,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.15")
+        root.title("光伏支架线模生成器 V1.2.16")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -223,7 +228,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.15：柱距命名恢复；悬挑/斜梁/檩条总长灰显锁定")
+        self.set_status("就绪 V1.2.16：前后斜撑长度按余弦定理自动计算（灰显锁定）")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -355,8 +360,8 @@ class PvSupportApp:
 
         self.calc_entries += pair(2, "最低点", "layout_ground_gap", "mm",
                                      "倾角", "layout_tilt", "度")
-        self.calc_entries += pair(3, "前斜撑", "brace_front", "mm",
-                                     "后斜撑", "brace_rear", "mm")
+        self.calc_entries += pair(3, "前斜撑距梁端", "brace_front_off", "mm",
+                                     "后斜撑距梁端", "brace_rear_off", "mm")
         ttk.Label(grp, text="端距").grid(row=4, column=0, sticky="w", pady=2)
         self.vars["purlin_end_offset"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_end_offset"], width=5, justify="right")
@@ -418,6 +423,21 @@ class PvSupportApp:
         self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
         self.purlin_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="立柱高度").grid(row=12, column=0, sticky="w", pady=(2, 0))
+        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.col_h_entry.grid(row=12, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=12, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="前斜撑长").grid(row=13, column=0, sticky="w", pady=(2, 0))
+        self.front_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.front_brace_len_entry.grid(row=13, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=13, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="后斜撑长").grid(row=13, column=3, sticky="w", pady=(2, 0))
+        self.rear_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.rear_brace_len_entry.grid(row=13, column=4, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=13, column=5, sticky="w")
+
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
         grp.columnconfigure(5, weight=1)
 
@@ -827,6 +847,34 @@ class PvSupportApp:
             self.purlin_len_entry.delete(0, "end")
             self.purlin_len_entry.insert(0, f"{purlin_total:.0f}")
             self.purlin_len_entry.configure(state="disabled")
+            # 立柱高度与前后斜撑长度（余弦定理）
+            alpha = math.radians(tilt)
+            beam_half = beam_len / 2
+            brace_ground = float(self.vars["brace_ground"].get())
+            front_off = float(self.vars["brace_front_off"].get())
+            rear_off = float(self.vars["brace_rear_off"].get())
+            if self.vars["support_type"].get() == "单立柱":
+                col_front_h = col_rear_h = ground + beam_half * math.sin(alpha)
+                front_side = max(0.0, beam_half - front_off)
+                rear_side = max(0.0, beam_half - rear_off)
+            else:
+                col_front_h = ground
+                col_rear_h = ground + beam_len * math.sin(alpha)
+                front_side = max(0.0, front_off)
+                rear_side = max(0.0, rear_off)
+            front_v = max(0.0, col_front_h - brace_ground)
+            rear_v = max(0.0, col_rear_h - brace_ground)
+            front_len = math.sqrt(max(0.0, front_v ** 2 + front_side ** 2
+                                      - 2 * front_v * front_side * math.cos(math.radians(90 - tilt))))
+            rear_len = math.sqrt(max(0.0, rear_v ** 2 + rear_side ** 2
+                                     - 2 * rear_v * rear_side * math.cos(math.radians(90 + tilt))))
+            for entry, val in ((self.col_h_entry, col_front_h),
+                               (self.front_brace_len_entry, front_len),
+                               (self.rear_brace_len_entry, rear_len)):
+                entry.configure(state="normal")
+                entry.delete(0, "end")
+                entry.insert(0, f"{val:.0f}")
+                entry.configure(state="disabled")
             if overhang < 0:
                 self.overhang_warn_label.config(
                     text=f"⚠ 悬挑为负（{overhang:.0f} mm）：柱距×品数超出檩条总长，"
@@ -863,6 +911,11 @@ class PvSupportApp:
             self.purlin_len_entry.delete(0, "end")
             self.purlin_len_entry.insert(0, "")
             self.purlin_len_entry.configure(state="disabled")
+            for entry in (self.col_h_entry, self.front_brace_len_entry, self.rear_brace_len_entry):
+                entry.configure(state="normal")
+                entry.delete(0, "end")
+                entry.insert(0, "")
+                entry.configure(state="disabled")
             self.overhang_warn_label.config(text="")
             self.frame_warn_label.config(text="")
 
@@ -923,11 +976,11 @@ class PvSupportApp:
             return
         slope, span, rise, ground, a = geo
         try:
-            brace_front = float(self.vars["brace_front"].get())
-            brace_rear = float(self.vars["brace_rear"].get())
+            brace_front_off = float(self.vars["brace_front_off"].get())
+            brace_rear_off = float(self.vars["brace_rear_off"].get())
             brace_ground = float(self.vars["brace_ground"].get())
         except (ValueError, tk.TclError):
-            brace_front, brace_rear, brace_ground = 960, 1808, 300
+            brace_front_off, brace_rear_off, brace_ground = 350, 350, 300
 
         maxh = ground + rise
         m = 44
@@ -955,11 +1008,11 @@ class PvSupportApp:
             # 双立柱：前后两端
             c.create_line(*P(0, 0), ax, ay, fill=MEMBER_COLORS["立柱"], width=3)
             c.create_line(*P(span, 0), bx, by, fill=MEMBER_COLORS["立柱"], width=3)
-            if 0 < brace_front < slope:
-                fx, fy = P(brace_front * math.cos(a), ground + brace_front * math.sin(a))
+            if 0 < brace_front_off < slope:
+                fx, fy = P(brace_front_off * math.cos(a), ground + brace_front_off * math.sin(a))
                 c.create_line(*P(0, brace_ground), fx, fy, fill=MEMBER_COLORS["斜撑"], width=2)
-            if 0 < brace_rear < slope:
-                t_rear = slope - brace_rear
+            if 0 < brace_rear_off < slope:
+                t_rear = slope - brace_rear_off
                 rx, ry = P(t_rear * math.cos(a), ground + t_rear * math.sin(a))
                 c.create_line(*P(span, brace_ground), rx, ry, fill=MEMBER_COLORS["斜撑"], width=2)
         else:
@@ -967,12 +1020,11 @@ class PvSupportApp:
             mid_x = span / 2
             mid_z = ground + rise / 2
             c.create_line(*P(mid_x, 0), *P(mid_x, mid_z), fill=MEMBER_COLORS["立柱"], width=3)
-            t_b = span / 2 - brace_front
-            if 0 < t_b < slope:
-                bx2, by2 = P(t_b * math.cos(a), ground + t_b * math.sin(a))
+            if 0 < brace_front_off < slope:
+                bx2, by2 = P(brace_front_off * math.cos(a), ground + brace_front_off * math.sin(a))
                 c.create_line(*P(mid_x, brace_ground), bx2, by2, fill=MEMBER_COLORS["斜撑"], width=2)
-            t_r = span / 2 + brace_rear
-            if 0 < t_r < slope:
+            if 0 < brace_rear_off < slope:
+                t_r = slope - brace_rear_off
                 rx2, ry2 = P(t_r * math.cos(a), ground + t_r * math.sin(a))
                 c.create_line(*P(mid_x, brace_ground), rx2, ry2, fill=MEMBER_COLORS["斜撑"], width=2)
 
@@ -1025,11 +1077,11 @@ class PvSupportApp:
         try:
             bay = float(self.vars["struct_bay"].get())
             frames = int(float(self.vars["struct_frames"].get()))
-            brace_front = float(self.vars["brace_front"].get())
-            brace_rear = float(self.vars["brace_rear"].get())
+            brace_front_off = float(self.vars["brace_front_off"].get())
+            brace_rear_off = float(self.vars["brace_rear_off"].get())
             brace_ground = float(self.vars["brace_ground"].get())
         except (ValueError, tk.TclError):
-            bay, frames, brace_front, brace_rear, brace_ground = 2000, 3, 960, 1808, 300
+            bay, frames, brace_front_off, brace_rear_off, brace_ground = 2000, 3, 350, 350, 300
 
         frames = max(1, min(12, frames))
         maxh = ground + rise
@@ -1045,11 +1097,11 @@ class PvSupportApp:
                 lines.append(((0, y, 0), (0, y, ground), MEMBER_COLORS["立柱"]))
                 lines.append(((span, y, 0), (span, y, ground + rise), MEMBER_COLORS["立柱"]))
                 lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
-                if 0 < brace_front < slope:
-                    p = beam_pt(brace_front, y)
+                if 0 < brace_front_off < slope:
+                    p = beam_pt(brace_front_off, y)
                     lines.append(((0, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
-                if 0 < brace_rear < slope:
-                    p = beam_pt(slope - brace_rear, y)
+                if 0 < brace_rear_off < slope:
+                    p = beam_pt(slope - brace_rear_off, y)
                     lines.append(((span, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
             else:
                 # 单立柱：斜梁中心正下方
@@ -1057,13 +1109,11 @@ class PvSupportApp:
                 mid_z = ground + rise / 2
                 lines.append(((mid_x, y, 0), (mid_x, y, mid_z), MEMBER_COLORS["立柱"]))
                 lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
-                t_b = span / 2 - brace_front
-                if 0 < t_b < slope:
-                    p = beam_pt(t_b, y)
+                if 0 < brace_front_off < slope:
+                    p = beam_pt(brace_front_off, y)
                     lines.append(((mid_x, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
-                t_r = span / 2 + brace_rear
-                if 0 < t_r < slope:
-                    p = beam_pt(t_r, y)
+                if 0 < brace_rear_off < slope:
+                    p = beam_pt(slope - brace_rear_off, y)
                     lines.append(((mid_x, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
 
         # 檩条：横跨所有品
@@ -1164,8 +1214,8 @@ class PvSupportApp:
                 "purlin_end_offset": f("purlin_end_offset"),
                 "purlin_extension": f("purlin_extension"),
                 "brace_ground": f("brace_ground"),
-                "brace_front": f("brace_front"),
-                "brace_rear": f("brace_rear"),
+                "brace_front_off": f("brace_front_off"),
+                "brace_rear_off": f("brace_rear_off"),
             },
             "sections": {
                 role: {
@@ -1227,8 +1277,8 @@ class PvSupportApp:
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
         setv("purlin_extension", st.get("purlin_extension", 150))
         setv("brace_ground", st.get("brace_ground", 300))
-        setv("brace_front", st.get("brace_front", 960))
-        setv("brace_rear", st.get("brace_rear", 1808))
+        setv("brace_front_off", st.get("brace_front_off", 350))
+        setv("brace_rear_off", st.get("brace_rear_off", 350))
         for role, _, _, _ in MEMBER_ROLES:
             sec = params.get("sections", {}).get(role, {})
             spec = sec.get("spec", "自定义")

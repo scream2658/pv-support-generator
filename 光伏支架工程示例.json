@@ -27,8 +27,8 @@
     "purlin_end_offset": 150,
     "purlin_extension": 150,
     "brace_ground": 300,
-    "brace_front": 960,
-    "brace_rear": 1808
+    "brace_front_off": 350,
+    "brace_rear_off": 350
   },
   "sections": {
     "立柱": { "spec": "槽钢", "model": "槽8", "material": "Q235B" },
