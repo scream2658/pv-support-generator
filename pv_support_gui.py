@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.13 — 界面骨架（MVP M1，2026-08-12 第十六版）
+光伏支架线模生成器 V1.2.14 — 界面骨架（MVP M1，2026-08-12 第十七版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.13 改动（檩条排布工程逻辑）：
-    1. 新增【背板孔距】参数（默认 1400mm，组件背板开孔间距）；
-    2. 取消手动"檩条间距"输入，檩条位置自动推导：
-       每行组件两道檩条（距组件底边 0 和 背板孔距），行间加组件间隙；
-       例：2 行组件 → 间距 1400 / 898 / 1400（898 = 组件长 − 背板孔距 + 间隙）；
-    3. 斜梁长度自动计算 = 端距×2 + 檩条总跨度，取整到 10mm
-       （例：150 + 1400 + 898 + 1400 + 150 = 3998 → 4000mm）；
-    4. 2D/3D 预览的檩条位置与斜梁长度同步按此逻辑生成。
+V1.2.14 改动（檩条悬挑工程校验 + 推导值只读）：
+    1. "柱距"改名为"品间距"（与工程术语一致）；
+    2. 檩条悬挑 = (檩条总长 − 品间距×品数)/2，自动校验：
+       · 悬挑 ＞ 800mm → 提醒"品间距或品数过少，请增大"；
+       · 悬挑 ＜ 0 → 提醒"品间距×品数超出檩条总长，请减小"；
+    3. 推导值只读化（灰显不可编辑）：檩条悬挑、斜梁长度、檩条总长
+       均由前面参数自动算出，不再人工输入（与风压锁定一致）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -101,7 +100,7 @@ DEFAULT_PARAMS = {
     "module": {"lib": "高科545W", "L": 2278, "W": 1134, "T": 35,
                "weight": 28.5, "power": 545, "hole_pitch": 1400},
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
-    "structure": {"type": "单立柱", "bay": 2000, "frames": 3,
+    "structure": {"type": "单立柱", "bay": 2000, "frames": 8,
                   "purlin_end_offset": 150, "purlin_extension": 150,
                   "brace_ground": 300, "brace_front": 960, "brace_rear": 1808},
     "sections": {
@@ -209,7 +208,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.13")
+        root.title("光伏支架线模生成器 V1.2.14")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -227,7 +226,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.13：背板孔距驱动檩条排布；斜梁长度自动取整4000；檩条间距取消手动")
+        self.set_status("就绪 V1.2.14：悬挑0~800校验；品间距改名；檩条总长/悬挑/斜梁长度只读推导")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -368,7 +367,7 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
+        ttk.Label(grp, text="品间距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5, justify="right")
         e.grid(row=5, column=1, sticky="w", padx=(4, 2))
@@ -407,16 +406,21 @@ class PvSupportApp:
         self.overhang_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="斜梁长度").grid(row=9, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
-        self.beam_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(
-            grp, text="mm",
-        ).grid(row=9, column=2, sticky="w", padx=(0, 6))
-        self.purlin_len_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
+        self.overhang_warn_label = ttk.Label(
+            grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
+            wraplength=430, justify="left",
         )
-        self.purlin_len_label.grid(row=10, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        self.overhang_warn_label.grid(row=9, column=0, columnspan=6, sticky="w", pady=(2, 0))
+
+        ttk.Label(grp, text="斜梁长度").grid(row=10, column=0, sticky="w", pady=(2, 0))
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.beam_len_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=10, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="檩条总长").grid(row=11, column=0, sticky="w", pady=(2, 0))
+        self.purlin_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.purlin_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
         grp.columnconfigure(5, weight=1)
 
@@ -817,19 +821,32 @@ class PvSupportApp:
             self.beam_len_entry.insert(0, f"{beam_len:.0f}")
             self.beam_len_entry.configure(state="readonly")
             purlin_total = total_length + 2 * extension
-            overhang = max(0.0, (purlin_total - frames * bay) / 2)
+            overhang = (purlin_total - frames * bay) / 2
             self.overhang_entry.configure(state="normal")
             self.overhang_entry.delete(0, "end")
             self.overhang_entry.insert(0, f"{overhang:.0f}")
             self.overhang_entry.configure(state="readonly")
-            self.purlin_len_label.config(
-                text=f"檩条总长 ≈ {purlin_total:.0f} mm"
-            )
+            self.purlin_len_entry.configure(state="normal")
+            self.purlin_len_entry.delete(0, "end")
+            self.purlin_len_entry.insert(0, f"{purlin_total:.0f}")
+            self.purlin_len_entry.configure(state="readonly")
+            if overhang < 0:
+                self.overhang_warn_label.config(
+                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：品间距×品数超出檩条总长，"
+                         f"请减小品间距或品数"
+                )
+            elif overhang > 800:
+                self.overhang_warn_label.config(
+                    text=f"⚠ 檩条悬挑 {overhang:.0f} mm ＞ 800 mm：品间距或品数过少，"
+                         f"请增大品间距或品数"
+                )
+            else:
+                self.overhang_warn_label.config(text="")
             frames_len = frames * bay
             if frames_len > total_length:
                 self.frame_warn_label.config(
-                    text=f"⚠ 榀数×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
-                         f"{total_length:.0f} mm，请减小榀数或柱距"
+                    text=f"⚠ 榀数×品间距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
+                         f"{total_length:.0f} mm，请减小榀数或品间距"
                 )
             else:
                 self.frame_warn_label.config(text="")
@@ -845,7 +862,11 @@ class PvSupportApp:
             self.overhang_entry.delete(0, "end")
             self.overhang_entry.insert(0, "")
             self.overhang_entry.configure(state="readonly")
-            self.purlin_len_label.config(text="")
+            self.purlin_len_entry.configure(state="normal")
+            self.purlin_len_entry.delete(0, "end")
+            self.purlin_len_entry.insert(0, "")
+            self.purlin_len_entry.configure(state="readonly")
+            self.overhang_warn_label.config(text="")
             self.frame_warn_label.config(text="")
 
     # ------------------------------------------------------------ 几何辅助
