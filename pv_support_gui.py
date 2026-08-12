@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.7 — 界面骨架（MVP M1，2026-08-12 第十版）
+光伏支架线模生成器 V1.2.8 — 界面骨架（MVP M1，2026-08-12 第十一版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.7 改动：
-    1. 窗口整体收窄（1120×820），布局更紧凑，消除右侧大块空白；
-    2. ⑤ 荷载参数改为两段式：上段=基本荷载+风压系数，下段=城市查表
-       （省/市/区县/抗震设防一行排布，区县紧跟在省市后面）；
-    3. ④ 3D 预览：XYZ 坐标移到左下角独立小坐标（与支架分离，随旋转联动）；
-    4. ② 新增【斜撑离地】参数（默认 300mm，斜撑从立柱离地处起斜向斜梁）；
-    5. 抗震设防数据已接入：省→市→区县自动匹配烈度（GB50011-2010 附录A，
-       自动抽取，个别区县名可能有 OCR 错字需人工核对）。
+V1.2.8 改动：
+    1. 省下拉显示规范全称（北京市/河北省/内蒙古自治区…），市区县联动保持；
+    2. 沿海风压放大改名为【沿海城市风压放大系数】，复选框改为经典勾选样式（✓）；
+    3. ② 支架形式示意图四周留白对称（不再贴边）；
+    4. ② 新增【斜梁长度】计算显示：= 端距×2 + (檩条数-1)×檩条间距，几何按此规则生成；
+    5. 榀数×柱距超限提醒改为自动换行，不再被截断；
+    6. 新增《需求文档.md》，按版本记录每次需求（可迭代、随仓库备份）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -59,6 +58,23 @@ MATERIAL_OPTIONS = ["Q235B", "Q355B", "Q460B", "6061-T6", "6063-T5", "6005-T5", 
 ROUGHNESS_OPTIONS = ["A类", "B类", "C类", "D类"]
 SEISMIC_OPTIONS = ["6度(0.05g)", "7度(0.10g)", "7度(0.15g)", "8度(0.20g)", "8度(0.30g)", "9度(0.40g)"]
 MANUAL_PROVINCE = "（手动输入）"
+
+PROV_DISPLAY = {
+    "北京": "北京市", "天津": "天津市", "上海": "上海市", "重庆": "重庆市",
+    "内蒙古": "内蒙古自治区", "广西": "广西壮族自治区", "西藏": "西藏自治区",
+    "宁夏": "宁夏回族自治区", "新疆": "新疆维吾尔自治区",
+    "香港": "香港特别行政区", "澳门": "澳门特别行政区", "台湾": "台湾省",
+}
+
+def prov_display(key):
+    return PROV_DISPLAY.get(key, key + "省")
+
+def prov_key(display):
+    for k, v in PROV_DISPLAY.items():
+        if v == display:
+            return k
+    return (display.replace("省", "").replace("壮族", "").replace("回族", "")
+            .replace("维吾尔", "").replace("自治区", "").replace("特别行政区", ""))
 
 MEMBER_ROLES = [
     ("立柱", "槽钢",   "槽8",                "Q235B"),
@@ -192,7 +208,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.7")
+        root.title("光伏支架线模生成器 V1.2.8")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -210,7 +226,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.7：默认北京/北京锁定；抗震设防按省-市-区县匹配；窗口更紧凑")
+        self.set_status("就绪 V1.2.8：省显示规范全称；斜梁长度自动计算；需求文档随版本迭代")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -374,15 +390,19 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
+        self.beam_len_label = ttk.Label(
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
+        )
+        self.beam_len_label.grid(row=7, column=0, columnspan=6, sticky="w", pady=(2, 0))
         self.purlin_len_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
         )
-        self.purlin_len_label.grid(row=7, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        self.purlin_len_label.grid(row=8, column=0, columnspan=6, sticky="w", pady=(2, 0))
         self.frame_warn_label = ttk.Label(
             grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
-            wraplength=540, justify="left",
+            wraplength=430, justify="left",
         )
-        self.frame_warn_label.grid(row=8, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        self.frame_warn_label.grid(row=9, column=0, columnspan=6, sticky="w", pady=(2, 0))
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
@@ -520,8 +540,8 @@ class PvSupportApp:
         entry(3, 2, "正压体型系数", "load_mu_s_pos", 1.30)
         entry(4, 2, "负压体型系数", "load_mu_s_neg", -1.30)
         self.vars["load_coastal_enabled"] = tk.BooleanVar(value=False)
-        ttk.Checkbutton(
-            grp, text="沿海风压放大", variable=self.vars["load_coastal_enabled"],
+        tk.Checkbutton(
+            grp, text="沿海城市风压放大系数", variable=self.vars["load_coastal_enabled"],
             command=self._toggle_coastal,
         ).grid(row=5, column=4, columnspan=2, sticky="w", pady=2)
         self.vars["load_coastal"] = tk.StringVar()
@@ -540,7 +560,7 @@ class PvSupportApp:
         self.vars["city_prov"] = tk.StringVar()
         self.prov_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_prov"],
-            values=[MANUAL_PROVINCE] + sorted(self.city_data.keys()),
+            values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
             state="readonly", width=5,
         )
         self.prov_cb.grid(row=8, column=1, sticky="w", padx=(2, 8))
@@ -622,8 +642,8 @@ class PvSupportApp:
             self.vars["load_coastal"].set("1.00")
 
     def _on_province_change(self, _event=None):
-        prov = self.vars["city_prov"].get()
-        if prov == MANUAL_PROVINCE:
+        prov_disp = self.vars["city_prov"].get()
+        if prov_disp == MANUAL_PROVINCE:
             self.vars["city_name"].set("")
             self.city_cb.configure(values=[])
             self.city_result_label.config(text="手动输入模式（风压/雪载可编辑）")
@@ -631,6 +651,7 @@ class PvSupportApp:
             self.district_cb.configure(values=[], state="disabled")
             self.vars["city_district"].set("")
             return
+        prov = prov_key(prov_disp)
         cities = sorted(self.city_data.get(prov, {}).keys())
         self.city_cb.configure(values=cities)
         if cities:
@@ -641,7 +662,7 @@ class PvSupportApp:
             self.city_result_label.config(text="该省暂无城市数据")
 
     def _on_city_change(self, _event=None):
-        prov = self.vars["city_prov"].get()
+        prov = prov_key(self.vars["city_prov"].get())
         city = self.vars["city_name"].get()
         rec = self.city_data.get(prov, {}).get(city)
         if not rec:
@@ -666,7 +687,7 @@ class PvSupportApp:
             self.vars["city_district"].set("")
 
     def _on_district_change(self, _event=None):
-        prov = self.vars["city_prov"].get()
+        prov = prov_key(self.vars["city_prov"].get())
         city = self.vars["city_name"].get()
         district = self.vars["city_district"].get()
         se_city = self.seismic_data.get(self._norm_prov(prov), {}).get(city, {})
@@ -762,6 +783,12 @@ class PvSupportApp:
             frames = int(float(self.vars["struct_frames"].get()))
             bay = float(self.vars["struct_bay"].get())
             extension = float(self.vars["purlin_extension"].get())
+            geo = self._profile_geometry()
+            beam_len = geo[0] if geo else 0.0
+            purlin_n = max(2, rows * 2)
+            self.beam_len_label.config(
+                text=f"斜梁长度 ≈ {beam_len:.0f} mm（端距×2 + {purlin_n - 1}×檩条间距）"
+            )
             self.purlin_len_label.config(
                 text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm（组件总长 + 2×外伸）"
             )
@@ -777,6 +804,7 @@ class PvSupportApp:
             self.draw_viewer()
         except (ValueError, tk.TclError):
             self.calc_label.config(text="组件总宽/总长：参数不完整")
+            self.beam_len_label.config(text="")
             self.purlin_len_label.config(text="")
             self.frame_warn_label.config(text="")
 
@@ -784,13 +812,15 @@ class PvSupportApp:
     def _profile_geometry(self):
         try:
             rows = int(float(self.vars["layout_rows"].get()))
-            gap = float(self.vars["layout_gap"].get())
-            L = float(self.vars["module_L"].get())
+            end_offset = float(self.vars["purlin_end_offset"].get())
+            interval = float(self.vars["struct_purlin_interval"].get())
             tilt = float(self.vars["layout_tilt"].get())
             ground = float(self.vars["layout_ground_gap"].get())
         except (ValueError, tk.TclError):
             return None
-        slope = rows * L + (rows - 1) * gap          # 斜梁长度 = 组件总宽（顺坡）
+        # 斜梁长度 = 端距×2 + (檩条数-1)×檩条间距（檩条数 = 行数×2）
+        n = max(2, rows * 2)
+        slope = 2 * end_offset + (n - 1) * interval
         a = math.radians(tilt)
         span = slope * math.cos(a)
         rise = slope * math.sin(a)
@@ -799,19 +829,15 @@ class PvSupportApp:
         return slope, span, rise, ground, a
 
     def _purlin_positions(self, slope):
-        """檩条位置：两排组件对应 4 根（每排两端各一根），按端距均布在斜梁上。"""
+        """檩条位置：端距起按固定间距排列，根数 = 行数×2。"""
         try:
             rows = int(float(self.vars["layout_rows"].get()))
             end_offset = float(self.vars["purlin_end_offset"].get())
+            interval = float(self.vars["struct_purlin_interval"].get())
         except (ValueError, tk.TclError):
-            rows, end_offset = 2, 150
-        count = max(2, rows * 2)
-        if count <= 1:
-            return [slope / 2]
-        usable = max(0.0, slope - 2 * end_offset)
-        if usable <= 0:
-            return [slope / 2]
-        return [end_offset + i * usable / (count - 1) for i in range(count)]
+            rows, end_offset, interval = 2, 150, 1500
+        n = max(2, rows * 2)
+        return [end_offset + i * interval for i in range(n)]
 
     # ------------------------------------------------------------ 侧面示意
     def draw_profile(self):
@@ -837,7 +863,7 @@ class PvSupportApp:
             brace_front, brace_rear, brace_ground = 960, 1808, 300
 
         maxh = ground + rise
-        m = 30
+        m = 44
         base_scale = min((cw - 2 * m) / span, (ch - 2 * m) / maxh)
         scale = base_scale * self.profile_zoom
 
@@ -1164,9 +1190,11 @@ class PvSupportApp:
         setv("load_mu_s_neg", ld.get("mu_s_neg", -1.30))
         setv("seismic", ld.get("seismic", "7度(0.10g)"))
         city = ld.get("city", {})
-        if city.get("province") in self.city_data:
-            setv("city_prov", city["province"])
-            cities = sorted(self.city_data[city["province"]].keys())
+        ckey = city.get("province", "")
+        pkey = ckey if ckey in self.city_data else prov_key(ckey)
+        if pkey in self.city_data:
+            setv("city_prov", prov_display(pkey))
+            cities = sorted(self.city_data[pkey].keys())
             self.city_cb.configure(values=cities)
             if city.get("city") in cities:
                 setv("city_name", city["city"])
