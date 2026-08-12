@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.45 — 界面骨架（MVP M1，2026-08-13 第四十七版）
+光伏支架线模生成器 V1.2.46 — 界面骨架（MVP M1，2026-08-13 第四十八版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.46 改动（右 650 定宽）：
+    1. 窗口总宽 1046（= 左侧 380 + 间距 + 右侧 650）；
+    2. 左侧栏固定 380px（①组件参数 / ②支架形式 / ③构件截面表），
+       内部控件零溢出；
+    3. 右侧面板固定 650px（④3D 预览 / ⑤荷载参数），
+       荷载参数余量 156px。
 
 V1.2.45 改动（左 380 / 右 900 定宽）：
     1. 窗口总宽 1296（= 左侧 380 + 间距 + 右侧 900）；
@@ -273,8 +280,8 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.45")
-        root.geometry("1296x820")
+        root.title("光伏支架线模生成器 V1.2.46")
+        root.geometry("1046x820")
         root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -291,7 +298,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.45：左侧 380px，右侧 900px，窗口 1296")
+        self.set_status("就绪 V1.2.46：左侧 380px，右侧 650px，窗口 1046")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
