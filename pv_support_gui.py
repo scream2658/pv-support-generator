@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.22 — 界面骨架（MVP M1，2026-08-12 第二十五版）
+光伏支架线模生成器 V1.2.23 — 界面骨架（MVP M1，2026-08-12 第二十六版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.22 改动（DXF 修复）：
-    1. 修复"数据不完整"打不开问题：手写 DXF 缺少必需表格段，
-       改用 ezdxf 生成标准 DXF（AC1015/mm），ezdxf 回读校验 0 错误；
-    2. 保留完整手写 DXF 作为无 ezdxf 时的回退路径；
-    3. 参数均以界面可调为准，DXF 已可正常打开。
+V1.2.23 改动（3D3S Excel 导入打通）：
+    1. 按 3D3S"表格化模型导入"模板生成 .xlsx：节点信息/单元信息/
+       单元信息（含坐标）/节点荷载 四个 Sheet，单位 mm/kN；
+    2. 单元信息含 材料(Q235/Q355)、截面类型、截面名称（随界面截面选择）；
+    3. "生成 3D3S"按钮已接入 Excel 导出；依赖 openpyxl（已安装）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -23,6 +23,7 @@ import tkinter as tk
 import zlib
 from tkinter import filedialog, messagebox, ttk
 
+from pv_excel import write_3d3s_excel
 from pv_geometry import write_dxf
 
 
@@ -217,7 +218,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.22")
+        root.title("光伏支架线模生成器 V1.2.23")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -235,7 +236,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.22：DXF 改用 ezdxf 生成，已修复打不开问题")
+        self.set_status("就绪 V1.2.23：3D3S Excel 导入文件已可生成")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1398,7 +1399,25 @@ class PvSupportApp:
         )
 
     def on_export_3d3s(self):
-        self.set_status("【生成 3D3S】先导出 DXF 线模，在 3D3S 2024 中试导入验证（M3 进行中）")
+        try:
+            params = self.collect_params()
+        except ValueError as exc:
+            messagebox.showwarning("参数有误", str(exc))
+            return
+        path = filedialog.asksaveasfilename(
+            title="导出 3D3S Excel 导入文件", defaultextension=".xlsx",
+            filetypes=[("Excel 文件", "*.xlsx")], initialfile="光伏支架_3D3S导入.xlsx",
+        )
+        if not path:
+            return
+        try:
+            info = write_3d3s_excel(params, path)
+        except Exception as exc:
+            messagebox.showerror("导出失败", str(exc))
+            return
+        self.set_status(
+            f"3D3S Excel 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
+        )
 
     def on_export_sap(self):
         self.set_status("【生成 SAP2000】M3 进行中：下一步生成 .s2k（含截面/荷载）")

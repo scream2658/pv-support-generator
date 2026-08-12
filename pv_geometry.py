@@ -42,6 +42,15 @@ def default_params():
                       "purlin_end_offset": 150, "purlin_extension": 150,
                       "beam_center_offset": 150, "brace_ground": 300,
                       "brace_front_off": 350, "brace_rear_off": 350},
+        "sections": {
+            "立柱": {"spec": "槽钢", "model": "槽8", "material": "Q235B"},
+            "斜梁": {"spec": "C型钢", "model": "C110×70×50×2.0", "material": "Q355B"},
+            "檩条": {"spec": "C型钢", "model": "41系列C型钢(41×41)", "material": "Q235B"},
+            "斜撑": {"spec": "角钢", "model": "L50×5", "material": "Q235B"},
+            "檩托": {"spec": "角钢", "model": "L40×4", "material": "Q235B"},
+            "抱箍": {"spec": "自定义", "model": "自定义", "material": "Q235B"},
+            "横担": {"spec": "方钢管", "model": "方管60×60×3", "material": "Q235B"},
+        },
     }
 
 
