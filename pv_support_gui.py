@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.39 — 界面骨架（MVP M1，2026-08-12 第四十一版）
+光伏支架线模生成器 V1.2.40 — 界面骨架（MVP M1，2026-08-12 第四十二版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.40 改动（截图批注：省市间距 + 参数行顺序）：
+    1. ⑤ 荷载参数"省/市/区县/抗震设防"整行放入独立 Frame 横向排列，
+       不再与下方恒载/雪载输入框共用 grid 列宽——"省"与"市"之间
+       空隙由 70px 减到 22px（仅剩"省"标签本身）；
+    2. ② 支架形式参数顺序调整：檩条悬挑 → 檩条总长 → 立柱高度 →
+       斜梁长度 → 前/后斜撑长（"檩条总长""立柱高度"上移至悬挑下方）。
 
 V1.2.39 改动（界面收紧 + 警告弹窗）：
     1. ② 支架形式参数表去掉两处常驻空行（品跨/悬挑红字标签），
@@ -227,7 +234,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.39")
+        root.title("光伏支架线模生成器 V1.2.40")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -245,7 +252,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.39：参数报错改为弹窗，省市一行已收紧")
+        self.set_status("就绪 V1.2.40：省市间距已压缩，参数顺序已调整")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -427,19 +434,19 @@ class PvSupportApp:
         self.overhang_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="斜梁长度").grid(row=8, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.beam_len_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="檩条总长").grid(row=8, column=0, sticky="w", pady=(2, 0))
+        self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.purlin_len_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="檩条总长").grid(row=9, column=0, sticky="w", pady=(2, 0))
-        self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.purlin_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="立柱高度").grid(row=9, column=0, sticky="w", pady=(2, 0))
+        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.col_h_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="立柱高度").grid(row=10, column=0, sticky="w", pady=(2, 0))
-        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.col_h_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="斜梁长度").grid(row=10, column=0, sticky="w", pady=(2, 0))
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.beam_len_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=10, column=2, sticky="w", padx=(0, 6))
 
         ttk.Label(grp, text="前斜撑长").grid(row=11, column=0, sticky="w", pady=(2, 0))
@@ -571,38 +578,42 @@ class PvSupportApp:
             font=("Microsoft YaHei UI", 9, "bold"),
         ).grid(row=0, column=0, columnspan=12, sticky="w", pady=(0, 2))
 
+        # 城市行放入独立 Frame 横向排列，避免与下方输入框共用 grid 列宽
+        city_row = ttk.Frame(grp)
+        city_row.grid(row=1, column=0, columnspan=12, sticky="w")
+
         self.vars["city_prov"] = tk.StringVar()
         self.prov_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_prov"],
+            city_row, textvariable=self.vars["city_prov"],
             values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
             state="readonly", width=6,
         )
-        self.prov_cb.grid(row=1, column=0, sticky="w", padx=(0, 2))
+        self.prov_cb.pack(side="left", padx=(0, 2))
         self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
-        ttk.Label(grp, text="省").grid(row=1, column=1, sticky="w", pady=2, padx=(0, 3))
+        ttk.Label(city_row, text="省").pack(side="left", padx=(0, 3))
 
         self.vars["city_name"] = tk.StringVar()
         self.city_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_name"], state="readonly", width=7,
+            city_row, textvariable=self.vars["city_name"], state="readonly", width=7,
         )
-        self.city_cb.grid(row=1, column=2, sticky="w", padx=(0, 2))
+        self.city_cb.pack(side="left", padx=(0, 2))
         self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
-        ttk.Label(grp, text="市").grid(row=1, column=3, sticky="w", pady=2, padx=(0, 3))
+        ttk.Label(city_row, text="市").pack(side="left", padx=(0, 3))
 
         self.vars["city_district"] = tk.StringVar()
         self.district_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_district"], state="disabled", width=8,
+            city_row, textvariable=self.vars["city_district"], state="disabled", width=8,
         )
-        self.district_cb.grid(row=1, column=4, sticky="w", padx=(0, 2))
+        self.district_cb.pack(side="left", padx=(0, 2))
         self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
-        ttk.Label(grp, text="区县").grid(row=1, column=5, sticky="w", pady=2, padx=(0, 3))
+        ttk.Label(city_row, text="区县").pack(side="left", padx=(0, 3))
 
-        ttk.Label(grp, text="抗震设防").grid(row=1, column=6, sticky="w", pady=2, padx=(0, 3))
+        ttk.Label(city_row, text="抗震设防").pack(side="left", padx=(0, 3))
         self.vars["seismic"] = tk.StringVar()
         ttk.Combobox(
-            grp, textvariable=self.vars["seismic"],
+            city_row, textvariable=self.vars["seismic"],
             values=SEISMIC_OPTIONS, state="readonly", width=8,
-        ).grid(row=1, column=7, sticky="w", padx=(0, 2))
+        ).pack(side="left")
 
         self.city_result_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
