@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.18 — 界面骨架（MVP M1，2026-08-12 第二十一版）
+光伏支架线模生成器 V1.2.19 — 界面骨架（MVP M1，2026-08-12 第二十二版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.18 改动（3D 预览真实尺寸）：
-    1. ④ 3D 预览的檩条按【实际檩条总长】绘制（= 组件阵列长 + 2×檩条外伸），
-       超出最外侧品的外伸部分也画出；品与品按柱距排布；
-    2. 地面示意框范围与檩条总长一致。
+V1.2.19 改动（悬挑口径与 3D 一致）：
+    1. 檩条悬挑 = (檩条总长 − (品数−1)×柱距) / 2，与 3D 图实际外伸一致；
+    2. 超限提醒同步：悬挑 ＞800 或 ＜0 时提醒；品跨 (品数−1)×柱距
+       超出组件阵列总长时提醒；
+    3. 默认品数调整为 9（柱距2000 → 品跨16000、悬挑795，落在合理区间）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -105,7 +106,7 @@ DEFAULT_PARAMS = {
     "module": {"lib": "高科545W", "L": 2278, "W": 1134, "T": 35,
                "weight": 28.5, "power": 545, "hole_pitch": 1400},
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
-    "structure": {"type": "单立柱", "bay": 2000, "frames": 8,
+    "structure": {"type": "单立柱", "bay": 2000, "frames": 9,
                   "purlin_end_offset": 150, "purlin_extension": 150,
                   "beam_center_offset": 150, "brace_ground": 300,
                   "brace_front_off": 350, "brace_rear_off": 350},
@@ -214,7 +215,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.18")
+        root.title("光伏支架线模生成器 V1.2.19")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -232,7 +233,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.18：3D 檩条按实际总长绘制（含外伸），品按柱距排布")
+        self.set_status("就绪 V1.2.19：悬挑按实际口径 (总长−(品数−1)×柱距)/2，默认品数9")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -849,7 +850,7 @@ class PvSupportApp:
             self.beam_len_entry.insert(0, f"{beam_len:.0f}")
             self.beam_len_entry.configure(state="disabled")
             purlin_total = total_length + 2 * extension
-            overhang = (purlin_total - frames * bay) / 2
+            overhang = (purlin_total - (frames - 1) * bay) / 2
             self.overhang_entry.configure(state="normal")
             self.overhang_entry.delete(0, "end")
             self.overhang_entry.insert(0, f"{overhang:.0f}")
@@ -888,8 +889,8 @@ class PvSupportApp:
                 entry.configure(state="disabled")
             if overhang < 0:
                 self.overhang_warn_label.config(
-                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：柱距×品数超出檩条总长，"
-                         f"请减小柱距或品数"
+                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：品跨（品数−1）×柱距超出"
+                         f"檩条总长，请减小柱距或品数"
                 )
             elif overhang > 800:
                 self.overhang_warn_label.config(
@@ -898,10 +899,10 @@ class PvSupportApp:
                 )
             else:
                 self.overhang_warn_label.config(text="")
-            frames_len = frames * bay
+            frames_len = (frames - 1) * bay
             if frames_len > total_length:
                 self.frame_warn_label.config(
-                    text=f"⚠ 榀数×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
+                    text=f"⚠ 品跨（品数−1）×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
                          f"{total_length:.0f} mm，请减小榀数或柱距"
                 )
             else:

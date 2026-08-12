@@ -23,7 +23,7 @@
   "structure": {
     "type": "单立柱",
     "bay": 2000,
-    "frames": 8,
+    "frames": 9,
     "purlin_end_offset": 150,
     "purlin_extension": 150,
     "beam_center_offset": 150,
