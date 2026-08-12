@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.4 — 界面骨架（MVP M1，2026-08-12 第七版）
+光伏支架线模生成器 V1.2.5 — 界面骨架（MVP M1，2026-08-12 第八版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.4 改动（按界面标注 + 口述调整）：
-    1. 自定义窗口图标（光伏面板样式）；
-    2. ② 支架形式：参数标签改短、去掉冗余单位字，整体更紧凑，右侧不再被遮挡；
-       复位后示意图严格居中显示；
-    3. ③ 构件截面表：型号下拉占满所在列宽；
-    4. ⑤ 荷载参数：新增【沿海风压放大系数】（默认 1.10，规范取 1.1 倍）；
-       地面粗糙度选项改为 A类/B类/C类/D类（与规范表述一致）；
-    5. 界面固定尺寸、布局饱满紧凑，不新增左右拖动；
-    6. ④ 3D 预览改为“转盘式”：绕模型中心旋转（固定支点）、Z 轴保持竖直向上、
-       俯仰角限制小范围，模型自动放大居中填满画布。
+V1.2.5 改动：
+    1. ⑤ 荷载参数整体压缩，三列间距收紧；新增【抗震设防烈度】（城市查表联动，
+       数据待补充 GB50011/GB18306 规范后自动接入）；
+    2. 城市选定后，基本风压/雪载自动锁定为规范值（灰显不可改），
+       省下拉选“（手动输入）”可解锁手动填写；
+    3. ③ 构件截面表：规格下拉宽度贴合文字；
+    4. ② 支架形式：去掉缩放/复位按钮（标题已注明滚轮缩放、右键平移），
+       参数重新带单位（mm / °）；默认居中；
+    5. 阵列参数改为【品数】（1~4 品可设），3D 预览按品数生成多榀；
+    6. 檩条根数修正：两排组件对应 4 根檩条，按端距均布在斜梁上；
+    7. 单立柱改为立于斜梁中心正下方（支架左右平衡）；
+    8. 窗口图标换成支架线框样式。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -59,6 +61,8 @@ SECTION_MODELS = {
 
 MATERIAL_OPTIONS = ["Q235B", "Q355B", "Q460B", "6061-T6", "6063-T5", "6005-T5", "自定义"]
 ROUGHNESS_OPTIONS = ["A类", "B类", "C类", "D类"]
+SEISMIC_OPTIONS = ["6度(0.05g)", "7度(0.10g)", "7度(0.15g)", "8度(0.20g)", "8度(0.30g)", "9度(0.40g)"]
+MANUAL_PROVINCE = "（手动输入）"
 
 MEMBER_ROLES = [
     ("立柱", "槽钢",   "槽8",                "Q235B"),
@@ -84,7 +88,7 @@ DEFAULT_PARAMS = {
     "module": {"lib": "高科545W", "L": 2278, "W": 1134, "T": 35,
                "weight": 28.5, "power": 545},
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
-    "structure": {"type": "单立柱", "bay": 2000, "bays": 8, "array_rows": 1,
+    "structure": {"type": "单立柱", "bay": 2000, "frames": 3,
                   "purlin_interval": 1500, "purlin_end_offset": 150,
                   "brace_front": 960, "brace_rear": 1808},
     "sections": {
@@ -93,44 +97,38 @@ DEFAULT_PARAMS = {
     },
     "loads": {"dead": 0.05, "wind_base": 0.35, "snow": 0.20, "roughness": "B类",
               "mu_z": 1.10, "beta_z": 1.00, "coastal": 1.10,
-              "mu_s_pos": 1.30, "mu_s_neg": -1.30},
+              "mu_s_pos": 1.30, "mu_s_neg": -1.30,
+              "seismic": "7度(0.10g)"},
 }
 
 
 # --------------------------------------------------------------------------
-# 窗口图标（纯 Python 生成 64×64 PNG：太阳 + 倾斜光伏板）
+# 窗口图标（纯 Python 生成 64×64 PNG：支架线框样式）
 # --------------------------------------------------------------------------
 
 def _make_icon_png():
     W = H = 64
     px = [[(0, 0, 0, 0)] * W for _ in range(H)]
 
-    def in_quad(x, y, pts):
-        sign = None
-        for i in range(4):
-            x1, y1 = pts[i]
-            x2, y2 = pts[(i + 1) % 4]
-            cross = (x2 - x1) * (y - y1) - (y2 - y1) * (x - x1)
-            if cross != 0:
-                s = cross > 0
-                if sign is None:
-                    sign = s
-                elif s != sign:
-                    return False
-        return True
+    def dist_seg(px_, py_, x1, y1, x2, y2):
+        dx, dy = x2 - x1, y2 - y1
+        if dx == 0 and dy == 0:
+            return math.hypot(px_ - x1, py_ - y1)
+        t = max(0.0, min(1.0, ((px_ - x1) * dx + (py_ - y1) * dy) / (dx * dx + dy * dy)))
+        return math.hypot(px_ - (x1 + t * dx), py_ - (y1 + t * dy))
 
     for y in range(H):
         for x in range(W):
-            # 太阳
-            if (x - 14) ** 2 + (y - 14) ** 2 <= 10 ** 2:
-                px[y][x] = (255, 193, 7, 255)
-            # 倾斜光伏板
-            elif in_quad(x, y, [(26, 18), (50, 18), (62, 50), (38, 50)]):
-                px[y][x] = (33, 150, 243, 255)
-            # 板框
-            elif in_quad(x, y, [(24, 15), (52, 15), (65, 50), (37, 50)]):
-                if not in_quad(x, y, [(27, 19), (49, 19), (60, 49), (38, 49)]):
-                    px[y][x] = (66, 66, 66, 255)
+            if (17 <= x <= 22 and 32 <= y <= 56) or (42 <= x <= 47 and 18 <= y <= 56):
+                px[y][x] = (21, 101, 192, 255)          # 立柱（蓝）
+            elif dist_seg(x, y, 17, 32, 47, 18) <= 3.2:
+                px[y][x] = (21, 101, 192, 255)          # 斜梁（蓝）
+            elif dist_seg(x, y, 22, 56, 29, 30) <= 2.0:
+                px[y][x] = (198, 40, 40, 255)           # 斜撑（红）
+            elif dist_seg(x, y, 22, 29, 26, 28) <= 1.6 or dist_seg(x, y, 38, 21, 42, 20) <= 1.6:
+                px[y][x] = (67, 160, 71, 255)           # 檩条（绿）
+            elif 10 <= x <= 54 and 56 <= y <= 57:
+                px[y][x] = (158, 158, 158, 255)         # 地面（灰）
 
     def chunk(tag, data):
         c = struct.pack(">I", len(data)) + tag + data
@@ -182,7 +180,6 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.unbind_all("<MouseWheel>")
 
     def _on_wheel(self, event):
-        # 内部画布（如支架示意）自己处理滚轮缩放时，不滚动面板
         if isinstance(event.widget, tk.Canvas) and event.widget is not self.canvas:
             return
         self.canvas.yview_scroll(int(-event.delta / 120), "units")
@@ -197,9 +194,9 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.4")
+        root.title("光伏支架线模生成器 V1.2.5")
         root.geometry("1280x840")
-        root.resizable(False, False)   # 界面固定尺寸，不做左右拖动
+        root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
             icon = tk.PhotoImage(data=ICON_PNG_B64)
@@ -209,12 +206,13 @@ class PvSupportApp:
         ttk.Style().theme_use("clam")
 
         self._load_city_data()
+        self._load_seismic_data()
         self._build_top_bar()
         self._build_main_area()
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.4：支架示意滚轮缩放/右键平移；3D 转盘旋转，Z 轴保持竖直")
+        self.set_status("就绪 V1.2.5：城市查表自动锁定风压/雪载；3D 按品数生成多榀")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -309,7 +307,7 @@ class PvSupportApp:
     # -------------------------------------------------------- ② 支架形式
     def _build_support_group(self, parent):
         grp = ttk.LabelFrame(
-            parent, text="② 支架形式（侧面示意 · 单位 mm · 滚轮缩放 / 右键平移）",
+            parent, text="② 支架形式（侧面示意 · 滚轮缩放 / 右键平移）",
             padding=(8, 6),
         )
         grp.pack(fill="x", pady=(0, 8))
@@ -328,16 +326,6 @@ class PvSupportApp:
         self.profile_pan_y = 0.0
         self._profile_drag = None
 
-        zoom_bar = ttk.Frame(grp)
-        zoom_bar.grid(row=1, column=0, columnspan=6, sticky="e", pady=(0, 4))
-        ttk.Label(zoom_bar, text="缩放").pack(side="left", padx=(0, 4))
-        ttk.Button(zoom_bar, text="缩小", width=5,
-                   command=lambda: self._profile_zoom_by(1 / 1.25)).pack(side="left", padx=2)
-        ttk.Button(zoom_bar, text="放大", width=5,
-                   command=lambda: self._profile_zoom_by(1.25)).pack(side="left", padx=2)
-        ttk.Button(zoom_bar, text="复位", width=5,
-                   command=self._profile_zoom_reset).pack(side="left", padx=2)
-
         def pair(row, label1, key1, unit1, label2, key2, unit2):
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
             self.vars[key1] = tk.StringVar()
@@ -353,30 +341,26 @@ class PvSupportApp:
                 ttk.Label(grp, text=unit2).grid(row=row, column=5, sticky="w")
             return [e1, e2]
 
-        self.calc_entries += pair(2, "最低点", "layout_ground_gap", "",
+        self.calc_entries += pair(2, "最低点", "layout_ground_gap", "mm",
                                      "倾角", "layout_tilt", "°")
-        self.calc_entries += pair(3, "前斜撑", "brace_front", "",
-                                     "后斜撑", "brace_rear", "")
-        self.calc_entries += pair(4, "檩条间距", "struct_purlin_interval", "",
-                                     "端距", "purlin_end_offset", "")
+        self.calc_entries += pair(3, "前斜撑", "brace_front", "mm",
+                                     "后斜撑", "brace_rear", "mm")
+        self.calc_entries += pair(4, "檩条间距", "struct_purlin_interval", "mm",
+                                     "端距", "purlin_end_offset", "mm")
 
         ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5)
         e.grid(row=5, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=5, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="跨数").grid(row=5, column=3, sticky="w", pady=2)
-        self.vars["struct_bays"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["struct_bays"], width=5)
+        ttk.Label(grp, text="品数").grid(row=5, column=3, sticky="w", pady=2)
+        self.vars["struct_frames"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["struct_frames"], width=5)
         e.grid(row=5, column=4, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
-
-        ttk.Label(grp, text="排数").grid(row=6, column=0, sticky="w", pady=2)
-        self.vars["struct_array_rows"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["struct_array_rows"], width=5)
-        e.grid(row=6, column=1, sticky="w", padx=(4, 2))
-        self.calc_entries.append(e)
+        ttk.Label(grp, text="品").grid(row=5, column=5, sticky="w")
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
@@ -387,7 +371,7 @@ class PvSupportApp:
         ttk.Label(grp, text="规格").grid(row=0, column=1, sticky="w", padx=(0, 4))
         ttk.Label(grp, text="型号").grid(row=0, column=2, sticky="w", padx=(0, 6))
         ttk.Label(grp, text="材质等级").grid(row=0, column=3, sticky="w")
-        grp.columnconfigure(2, weight=1)   # 型号列占满剩余宽度
+        grp.columnconfigure(2, weight=1)
 
         self.section_spec_cbs = {}
         self.section_model_cbs = {}
@@ -397,7 +381,7 @@ class PvSupportApp:
             self.vars[f"sec_{role}_spec"] = tk.StringVar()
             spec_cb = ttk.Combobox(
                 grp, textvariable=self.vars[f"sec_{role}_spec"],
-                values=SPEC_TYPES, state="readonly", width=6,
+                values=SPEC_TYPES, state="readonly", width=5,
             )
             spec_cb.grid(row=i, column=1, sticky="w", padx=(0, 4), pady=1)
             spec_cb.bind("<<ComboboxSelected>>", lambda _e, r=role: self._on_spec_change(r))
@@ -437,7 +421,6 @@ class PvSupportApp:
         self.preview.pack(fill="both", expand=True)
         self.preview.bind("<Configure>", lambda _e: self.draw_viewer())
 
-        # 转盘式视图：绕模型中心旋转，Z 轴保持竖直
         self.view_yaw = 0.6
         self.view_pitch = 0.35
         self.view_zoom = 1.0
@@ -485,9 +468,9 @@ class PvSupportApp:
             ttk.Label(grp, text=label).grid(row=row, column=col * 2, sticky="w", pady=2)
             self.vars[key] = tk.StringVar()
             e = ttk.Entry(grp, textvariable=self.vars[key], width=5)
-            e.grid(row=row, column=col * 2 + 1, sticky="w", padx=(4, 8))
+            e.grid(row=row, column=col * 2 + 1, sticky="w", padx=(2, 6))
             if unit:
-                ttk.Label(grp, text=unit).grid(row=row, column=col * 2 + 2, sticky="w", padx=(0, 8))
+                ttk.Label(grp, text=unit).grid(row=row, column=col * 2 + 2, sticky="w", padx=(0, 6))
             return e
 
         # 左列：基本荷载（竖向）+ 地面粗糙度
@@ -496,14 +479,14 @@ class PvSupportApp:
             font=("Microsoft YaHei UI", 9, "bold"),
         ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 2))
         entry(1, 0, "恒载", "load_dead", 0.05, "kN/m²")
-        entry(2, 0, "雪载", "load_snow", 0.20, "kN/m²")
-        entry(3, 0, "基本风压", "load_wind_base", 0.35, "kN/m²")
+        self.snow_entry = entry(2, 0, "雪载", "load_snow", 0.20, "kN/m²")
+        self.wind_base_entry = entry(3, 0, "基本风压", "load_wind_base", 0.35, "kN/m²")
         ttk.Label(grp, text="地面粗糙度").grid(row=4, column=0, sticky="w", pady=2)
         self.vars["load_roughness"] = tk.StringVar()
         ttk.Combobox(
             grp, textvariable=self.vars["load_roughness"],
             values=ROUGHNESS_OPTIONS, state="readonly", width=5,
-        ).grid(row=4, column=1, sticky="w", padx=(4, 8))
+        ).grid(row=4, column=1, sticky="w", padx=(2, 6))
 
         # 中列：风压系数（竖向，含阵风系数、沿海放大系数）
         ttk.Label(
@@ -516,7 +499,7 @@ class PvSupportApp:
         entry(4, 2, "负压体型系数", "load_mu_s_neg", -1.30)
         entry(5, 2, "沿海放大", "load_coastal", 1.10)
 
-        # 右列：城市查表（省/市一行）
+        # 右列：城市查表（省/市一行）+ 抗震设防烈度
         ttk.Label(
             grp, text="城市查表（50年重现期）", foreground="#616161",
             font=("Microsoft YaHei UI", 9, "bold"),
@@ -526,27 +509,41 @@ class PvSupportApp:
         self.vars["city_prov"] = tk.StringVar()
         self.prov_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_prov"],
-            values=sorted(self.city_data.keys()), state="readonly", width=5,
+            values=[MANUAL_PROVINCE] + sorted(self.city_data.keys()),
+            state="readonly", width=5,
         )
-        self.prov_cb.grid(row=1, column=9, sticky="w", padx=(4, 6))
+        self.prov_cb.grid(row=1, column=9, sticky="w", padx=(2, 6))
         self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
 
         ttk.Label(grp, text="市").grid(row=1, column=10, sticky="w", pady=2)
         self.vars["city_name"] = tk.StringVar()
         self.city_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_name"], state="readonly", width=10,
+            grp, textvariable=self.vars["city_name"], state="readonly", width=9,
         )
-        self.city_cb.grid(row=1, column=11, sticky="w", padx=(4, 4))
+        self.city_cb.grid(row=1, column=11, sticky="w", padx=(2, 4))
         self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
 
         self.city_result_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold"),
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
         )
         self.city_result_label.grid(row=2, column=8, columnspan=4, sticky="w", pady=(2, 0))
+
+        ttk.Label(grp, text="抗震设防").grid(row=3, column=8, sticky="w", pady=2)
+        self.vars["seismic"] = tk.StringVar()
+        ttk.Combobox(
+            grp, textvariable=self.vars["seismic"],
+            values=SEISMIC_OPTIONS, state="readonly", width=9,
+        ).grid(row=3, column=9, columnspan=3, sticky="w", padx=(2, 4))
         ttk.Label(
             grp, foreground="#757575",
-            text="沿海放大：沿海城市基本风压按规范放大 1.1 倍，可调；查表后可再手动改",
-            wraplength=540,
+            text="抗震数据待补充：放入 GB50011-2010 / GB18306-2015 后自动按城市匹配",
+            wraplength=300,
+        ).grid(row=4, column=8, columnspan=4, sticky="w", pady=(0, 2))
+
+        ttk.Label(
+            grp, foreground="#757575",
+            text="沿海放大：沿海城市基本风压按规范放大 1.1 倍，可调；选定城市后风压/雪载自动锁定",
+            wraplength=560,
         ).grid(row=6, column=0, columnspan=12, sticky="w", pady=(4, 0))
 
     def _build_status_bar(self):
@@ -565,8 +562,28 @@ class PvSupportApp:
         except (OSError, json.JSONDecodeError):
             self.city_data = {}
 
+    def _load_seismic_data(self):
+        self.seismic_data = {}
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "抗震设防数据.json")
+        try:
+            with open(path, "r", encoding="utf-8") as fp:
+                self.seismic_data = json.load(fp).get("data", {})
+        except (OSError, json.JSONDecodeError):
+            self.seismic_data = {}
+
+    def _set_load_locked(self, locked):
+        state = "disabled" if locked else "normal"
+        self.wind_base_entry.configure(state=state)
+        self.snow_entry.configure(state=state)
+
     def _on_province_change(self, _event=None):
         prov = self.vars["city_prov"].get()
+        if prov == MANUAL_PROVINCE:
+            self.vars["city_name"].set("")
+            self.city_cb.configure(values=[])
+            self.city_result_label.config(text="手动输入模式（风压/雪载可编辑）")
+            self._set_load_locked(False)
+            return
         cities = sorted(self.city_data.get(prov, {}).keys())
         self.city_cb.configure(values=cities)
         if cities:
@@ -585,8 +602,13 @@ class PvSupportApp:
         self.vars["load_wind_base"].set(str(rec["w50"]))
         self.vars["load_snow"].set(str(rec["s50"]))
         self.city_result_label.config(
-            text=f"风压 {rec['w50']} · 雪压 {rec['s50']} kN/m²（GB50009-2012 附录E）"
+            text=f"风压 {rec['w50']} · 雪压 {rec['s50']} kN/m²（规范值，已锁定）"
         )
+        self._set_load_locked(True)
+        # 抗震设防烈度：若已补充规范数据则自动匹配
+        se = self.seismic_data.get(prov, {}).get(city)
+        if se and se.get("intensity") in SEISMIC_OPTIONS:
+            self.vars["seismic"].set(se["intensity"])
 
     # ------------------------------------------------------------ 联动逻辑
     def _on_lib_change(self, _event=None):
@@ -617,16 +639,6 @@ class PvSupportApp:
         self.profile_zoom = max(0.3, min(3.5, self.profile_zoom * factor))
         self.draw_profile()
 
-    def _profile_zoom_by(self, factor):
-        self.profile_zoom = max(0.3, min(3.5, self.profile_zoom * factor))
-        self.draw_profile()
-
-    def _profile_zoom_reset(self):
-        self.profile_zoom = 1.0
-        self.profile_pan_x = 0.0
-        self.profile_pan_y = 0.0
-        self.draw_profile()
-
     def _profile_pan_start(self, event):
         self._profile_drag = (event.x, event.y)
 
@@ -651,7 +663,6 @@ class PvSupportApp:
         self._drag = (event.x, event.y)
         if mode == "orbit":
             self.view_yaw += dx * 0.008
-            # 俯仰角限制在小范围，保证 Z 轴基本竖直
             self.view_pitch = max(-0.65, min(0.65, self.view_pitch + dy * 0.008))
         else:
             self.view_pan_x += dx
@@ -687,7 +698,7 @@ class PvSupportApp:
         except (ValueError, tk.TclError):
             self.calc_label.config(text="组件总宽/总长：参数不完整")
 
-    # ------------------------------------------------------------ 侧面示意
+    # ------------------------------------------------------------ 几何辅助
     def _profile_geometry(self):
         try:
             rows = int(float(self.vars["layout_rows"].get()))
@@ -697,7 +708,7 @@ class PvSupportApp:
             ground = float(self.vars["layout_ground_gap"].get())
         except (ValueError, tk.TclError):
             return None
-        slope = rows * L + (rows - 1) * gap
+        slope = rows * L + (rows - 1) * gap          # 斜梁长度 = 组件总宽（顺坡）
         a = math.radians(tilt)
         span = slope * math.cos(a)
         rise = slope * math.sin(a)
@@ -705,8 +716,24 @@ class PvSupportApp:
             return None
         return slope, span, rise, ground, a
 
+    def _purlin_positions(self, slope):
+        """檩条位置：两排组件对应 4 根（每排两端各一根），按端距均布在斜梁上。"""
+        try:
+            rows = int(float(self.vars["layout_rows"].get()))
+            end_offset = float(self.vars["purlin_end_offset"].get())
+        except (ValueError, tk.TclError):
+            rows, end_offset = 2, 150
+        count = max(2, rows * 2)
+        if count <= 1:
+            return [slope / 2]
+        usable = max(0.0, slope - 2 * end_offset)
+        if usable <= 0:
+            return [slope / 2]
+        return [end_offset + i * usable / (count - 1) for i in range(count)]
+
+    # ------------------------------------------------------------ 侧面示意
     def draw_profile(self):
-        """② 支架形式：侧面示意图，复位后严格居中显示。"""
+        """② 支架形式：侧面示意图。单立柱立于斜梁中心正下方，双立柱在两端。"""
         c = self.profile
         c.delete("all")
         cw = max(c.winfo_width(), 60)
@@ -723,18 +750,14 @@ class PvSupportApp:
         try:
             brace_front = float(self.vars["brace_front"].get())
             brace_rear = float(self.vars["brace_rear"].get())
-            purlin_interval = float(self.vars["struct_purlin_interval"].get())
-            end_offset = float(self.vars["purlin_end_offset"].get())
-            rows = int(float(self.vars["layout_rows"].get()))
         except (ValueError, tk.TclError):
-            brace_front, brace_rear, purlin_interval, end_offset, rows = 960, 1808, 1500, 150, 2
+            brace_front, brace_rear = 960, 1808
 
         maxh = ground + rise
         m = 30
         base_scale = min((cw - 2 * m) / span, (ch - 2 * m) / maxh)
         scale = base_scale * self.profile_zoom
 
-        # 复位后：几何中心对准画布中心
         def P(x, y):
             return (
                 cw / 2 + (x - span / 2) * scale + self.profile_pan_x,
@@ -751,34 +774,38 @@ class PvSupportApp:
         bx, by = P(span, ground + rise)
         c.create_line(ax, ay, bx, by, fill=MEMBER_COLORS["斜梁"], width=3)
 
-        c.create_line(*P(0, 0), ax, ay, fill=MEMBER_COLORS["立柱"], width=3)
-        if self.vars["support_type"].get() == "单桩双立柱":
+        double_col = self.vars["support_type"].get() == "单桩双立柱"
+        if double_col:
+            # 双立柱：前后两端
+            c.create_line(*P(0, 0), ax, ay, fill=MEMBER_COLORS["立柱"], width=3)
             c.create_line(*P(span, 0), bx, by, fill=MEMBER_COLORS["立柱"], width=3)
+            if 0 < brace_front < slope:
+                fx, fy = P(brace_front * math.cos(a), ground + brace_front * math.sin(a))
+                c.create_line(*P(0, 0), fx, fy, fill=MEMBER_COLORS["斜撑"], width=2)
+            if 0 < brace_rear < slope:
+                t_rear = slope - brace_rear
+                rx, ry = P(t_rear * math.cos(a), ground + t_rear * math.sin(a))
+                c.create_line(*P(span, 0), rx, ry, fill=MEMBER_COLORS["斜撑"], width=2)
+        else:
+            # 单立柱：立于斜梁中心正下方（支架左右平衡）
+            mid_x = span / 2
+            mid_z = ground + rise / 2
+            c.create_line(*P(mid_x, 0), *P(mid_x, mid_z), fill=MEMBER_COLORS["立柱"], width=3)
+            t_b = span / 2 - brace_front
+            if 0 < t_b < slope:
+                bx2, by2 = P(t_b * math.cos(a), ground + t_b * math.sin(a))
+                c.create_line(*P(mid_x, 0), bx2, by2, fill=MEMBER_COLORS["斜撑"], width=2)
 
-        if 0 < brace_front < slope:
-            fx, fy = P(brace_front * math.cos(a), ground + brace_front * math.sin(a))
-            c.create_line(*P(0, 0), fx, fy, fill=MEMBER_COLORS["斜撑"], width=2)
-        if self.vars["support_type"].get() == "单桩双立柱" and 0 < brace_rear < slope:
-            t_rear = slope - brace_rear
-            rx, ry = P(t_rear * math.cos(a), ground + t_rear * math.sin(a))
-            c.create_line(*P(span, 0), rx, ry, fill=MEMBER_COLORS["斜撑"], width=2)
-
-        purlin_count = rows * 2
-        nx = -math.sin(a)
-        ny = math.cos(a)
-        tick = max(8, scale * 90)
-        for i in range(purlin_count):
-            t = end_offset + i * purlin_interval
-            if t > slope:
-                break
+        for t in self._purlin_positions(slope):
             px, py = P(t * math.cos(a), ground + t * math.sin(a))
+            nx, ny = -math.sin(a), math.cos(a)
+            tick = max(8, scale * 80)
             c.create_line(
                 px - nx * tick, py - ny * tick,
                 px + nx * tick, py + ny * tick,
                 fill=MEMBER_COLORS["檩条"], width=2,
             )
 
-        # 倾角标注
         r = max(24, min(40, scale * 240))
         c.create_arc(ax - r, ay - r, ax + r, ay + r,
                      start=0, extent=-math.degrees(a), style="arc", outline="#757575")
@@ -797,14 +824,13 @@ class PvSupportApp:
         if self.profile_zoom > 1.01 or self.profile_pan_x or self.profile_pan_y:
             c.create_text(
                 cw / 2, 12, fill="#757575",
-                text=f"缩放 {self.profile_zoom:.1f}× · 右键平移 · 复位恢复居中",
+                text=f"缩放 {self.profile_zoom:.1f}× · 右键平移",
                 font=("Microsoft YaHei UI", 8),
             )
 
     # ------------------------------------------------------------ 3D 预览
     def draw_viewer(self):
-        """④ 3D 线框预览：转盘式旋转（绕模型中心，Z 轴保持竖直）。
-        中键拖动旋转 / 右键平移 / 滚轮缩放，模型自动放大居中填满画布。"""
+        """④ 3D 线框预览：按品数生成多榀，转盘式旋转（Z 轴保持竖直）。"""
         c = self.preview
         c.delete("all")
         w = max(c.winfo_width(), 60)
@@ -820,48 +846,55 @@ class PvSupportApp:
         slope, span, rise, ground, a = geo
         try:
             bay = float(self.vars["struct_bay"].get())
+            frames = int(float(self.vars["struct_frames"].get()))
             brace_front = float(self.vars["brace_front"].get())
             brace_rear = float(self.vars["brace_rear"].get())
-            purlin_interval = float(self.vars["struct_purlin_interval"].get())
-            end_offset = float(self.vars["purlin_end_offset"].get())
-            rows = int(float(self.vars["layout_rows"].get()))
         except (ValueError, tk.TclError):
-            bay, brace_front, brace_rear, purlin_interval, end_offset, rows = 2000, 960, 1808, 1500, 150, 2
+            bay, frames, brace_front, brace_rear = 2000, 3, 960, 1808
 
-        depth = bay * 0.55
+        frames = max(1, min(12, frames))
         maxh = ground + rise
+        double_col = self.vars["support_type"].get() == "单桩双立柱"
 
-        def beam_pt(t):
-            return (t * math.cos(a), 0.0, ground + t * math.sin(a))
+        def beam_pt(t, y):
+            return (t * math.cos(a), y, ground + t * math.sin(a))
 
         lines = []
-        double_col = self.vars["support_type"].get() == "单桩双立柱"
-        for y in (-depth, depth):
-            lines.append(((0, y, 0), (0, y, ground), MEMBER_COLORS["立柱"]))
+        frame_ys = [(i - (frames - 1) / 2) * bay for i in range(frames)]
+        for y in frame_ys:
             if double_col:
+                lines.append(((0, y, 0), (0, y, ground), MEMBER_COLORS["立柱"]))
                 lines.append(((span, y, 0), (span, y, ground + rise), MEMBER_COLORS["立柱"]))
-            lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
-            if 0 < brace_front < slope:
-                p = beam_pt(brace_front)
-                lines.append(((0, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
-            if double_col and 0 < brace_rear < slope:
-                p = beam_pt(slope - brace_rear)
-                lines.append(((span, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
+                if 0 < brace_front < slope:
+                    p = beam_pt(brace_front, y)
+                    lines.append(((0, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                if 0 < brace_rear < slope:
+                    p = beam_pt(slope - brace_rear, y)
+                    lines.append(((span, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+            else:
+                # 单立柱：斜梁中心正下方
+                mid_x = span / 2
+                mid_z = ground + rise / 2
+                lines.append(((mid_x, y, 0), (mid_x, y, mid_z), MEMBER_COLORS["立柱"]))
+                lines.append(((0, y, ground), (span, y, ground + rise), MEMBER_COLORS["斜梁"]))
+                t_b = span / 2 - brace_front
+                if 0 < t_b < slope:
+                    p = beam_pt(t_b, y)
+                    lines.append(((mid_x, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
 
-        purlin_count = rows * 2
-        for i in range(purlin_count):
-            t = end_offset + i * purlin_interval
-            if t > slope:
-                break
-            p = beam_pt(t)
-            lines.append(((p[0], -depth, p[2]), (p[0], depth, p[2]), MEMBER_COLORS["檩条"]))
+        # 檩条：横跨所有品
+        y0, y1 = frame_ys[0], frame_ys[-1]
+        for t in self._purlin_positions(slope):
+            p = beam_pt(t, 0)
+            lines.append(((p[0], y0, p[2]), (p[0], y1, p[2]), MEMBER_COLORS["檩条"]))
 
-        lines.append(((0, -depth, 0), (span, -depth, 0), "#9e9e9e"))
-        lines.append(((span, -depth, 0), (span, depth, 0), "#9e9e9e"))
-        lines.append(((span, depth, 0), (0, depth, 0), "#9e9e9e"))
-        lines.append(((0, depth, 0), (0, -depth, 0), "#9e9e9e"))
+        # 地面框
+        lines.append(((0, y0, 0), (span, y0, 0), "#9e9e9e"))
+        lines.append(((span, y0, 0), (span, y1, 0), "#9e9e9e"))
+        lines.append(((span, y1, 0), (0, y1, 0), "#9e9e9e"))
+        lines.append(((0, y1, 0), (0, y0, 0), "#9e9e9e"))
 
-        # 固定支点 = 模型中心；转盘式：绕竖直 Z 轴旋转 + 小俯仰视角
         cxw, cyw, czw = span / 2, 0.0, maxh / 2
         yaw = self.view_yaw
         p = self.view_pitch
@@ -874,15 +907,14 @@ class PvSupportApp:
             z1 = z - czw
             return x1, y1, z1
 
-        maxdim = max(span, depth * 2, maxh, 1.0)
+        total_depth = max(abs(y0), abs(y1)) * 2
+        maxdim = max(span, total_depth, maxh, 1.0)
         scale = min(w, h) / maxdim * 0.62 * self.view_zoom
         cx, cy = w / 2 + self.view_pan_x, h / 2 + self.view_pan_y
 
         def proj(x, y, z):
             x1, y1, z1 = transform(x, y, z)
-            sx = cx + x1 * scale
-            sy = cy - z1 * scale * cp + y1 * scale * sp
-            return sx, sy
+            return cx + x1 * scale, cy - z1 * scale * cp + y1 * scale * sp
 
         for p1, p2, color in lines:
             c.create_line(*proj(*p1), *proj(*p2), fill=color, width=2)
@@ -900,7 +932,7 @@ class PvSupportApp:
 
         c.create_text(
             cx, h - 10, fill="#757575",
-            text="中键拖动旋转（Z轴竖直）· 右键平移 · 滚轮缩放",
+            text=f"{frames} 品 · 中键旋转（Z轴竖直）· 右键平移 · 滚轮缩放",
             font=("Microsoft YaHei UI", 9),
         )
 
@@ -932,8 +964,7 @@ class PvSupportApp:
             },
             "structure": {
                 "type": self.vars["support_type"].get(),
-                "bay": f("struct_bay"), "bays": i("struct_bays"),
-                "array_rows": i("struct_array_rows"),
+                "bay": f("struct_bay"), "frames": i("struct_frames"),
                 "purlin_interval": f("struct_purlin_interval"),
                 "purlin_end_offset": f("purlin_end_offset"),
                 "brace_front": f("brace_front"),
@@ -957,6 +988,7 @@ class PvSupportApp:
                 "coastal": f("load_coastal"),
                 "mu_s_pos": f("load_mu_s_pos"),
                 "mu_s_neg": f("load_mu_s_neg"),
+                "seismic": self.vars["seismic"].get(),
                 "city": {
                     "province": self.vars["city_prov"].get(),
                     "city": self.vars["city_name"].get(),
@@ -989,8 +1021,8 @@ class PvSupportApp:
         setv("layout_ground_gap", lay.get("ground_gap", 1000))
         st = params.get("structure", {})
         setv("struct_bay", st.get("bay", 2000))
-        setv("struct_bays", st.get("bays", 8))
-        setv("struct_array_rows", st.get("array_rows", 1))
+        # 品数（兼容旧字段 array_rows）
+        setv("struct_frames", st.get("frames", st.get("array_rows", 3)))
         setv("struct_purlin_interval", st.get("purlin_interval", 1500))
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
         setv("brace_front", st.get("brace_front", 960))
@@ -1023,6 +1055,7 @@ class PvSupportApp:
         setv("load_coastal", ld.get("coastal", 1.10))
         setv("load_mu_s_pos", ld.get("mu_s_pos", 1.30))
         setv("load_mu_s_neg", ld.get("mu_s_neg", -1.30))
+        setv("seismic", ld.get("seismic", "7度(0.10g)"))
         city = ld.get("city", {})
         if city.get("province") in self.city_data:
             setv("city_prov", city["province"])
@@ -1031,6 +1064,13 @@ class PvSupportApp:
             if city.get("city") in cities:
                 setv("city_name", city["city"])
                 self._on_city_change()
+        else:
+            # 无城市记录 → 手动输入模式
+            self.vars["city_prov"].set(MANUAL_PROVINCE)
+            self.vars["city_name"].set("")
+            self.city_cb.configure(values=[])
+            self._set_load_locked(False)
+            self.city_result_label.config(text="手动输入模式（风压/雪载可编辑）")
         self.update_calc()
 
     # ------------------------------------------------------------ 按钮动作
