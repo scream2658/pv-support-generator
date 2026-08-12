@@ -226,6 +226,32 @@ def write_dxf(params, path):
         msp.add_line(nodes[i], nodes[j], dxfattribs={"layer": MEMBER_LAYER[kind]})
     for idx in model["supports"]:
         msp.add_point(nodes[idx], dxfattribs={"layer": "L-SUPPORT"})
+    # 截面信息表（CAD 中直接可读，供工程判断截面是否合理）
+    try:
+        from pv_sections import get_props
+        sec_lines = []
+        used = {}
+        for kind, _i, _j in model["members"]:
+            sec = params.get("sections", {}).get(kind, {})
+            key = (kind, sec.get("spec", ""), sec.get("model", ""), sec.get("material", ""))
+            if key not in used:
+                used[key] = get_props(key[1], key[2])
+                sec_lines.append((key[0], key[1], key[2], key[3], used[key]))
+        xs = [nodes[k][0] for k in nodes]
+        ys = [nodes[k][1] for k in nodes]
+        x0, y0 = min(xs), min(ys)
+        h = 300.0
+        msp.add_text("截面信息表（线模带截面，供工程判断）",
+                     dxfattribs={"height": 400}).set_placement((x0, y0 - 800, 0))
+        for i, (kind, spec, mname, mat, props) in enumerate(sec_lines):
+            text = "%s: %s %s %s" % (kind, spec, mname, mat)
+            if props:
+                text += "  A=%.0fmm2 I1=%.1fcm4 I2=%.1fcm4" % (
+                    props["A"], props["I1"] / 1e4, props["I2"] / 1e4)
+            msp.add_text(text, dxfattribs={"height": h}).set_placement(
+                (x0, y0 - 1000 - i * h * 1.7, 0))
+    except Exception:
+        pass
     doc.saveas(path)
     return model
 
