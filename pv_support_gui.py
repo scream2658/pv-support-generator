@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.17 — 界面骨架（MVP M1，2026-08-12 第二十版）
+光伏支架线模生成器 V1.2.18 — 界面骨架（MVP M1，2026-08-12 第二十一版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.17 改动（立柱高度修正）：
-    1. 新增【梁中心偏移】参数（默认150mm）：组件最低点至斜梁中心线的
-       垂直距离（主要由檩条截面高度决定，M4 可从檩条截面自动带出）；
-    2. 实际立柱高度 = 最低点高度 + 斜梁半长×sin(倾角) − 梁中心偏移；
-       斜梁中心线整体下移偏移量，前/后斜撑长度按修正后的立柱高度计算；
-    3. 斜梁长度不受影响（长细比影响仅几十毫米，忽略）。
+V1.2.18 改动（3D 预览真实尺寸）：
+    1. ④ 3D 预览的檩条按【实际檩条总长】绘制（= 组件阵列长 + 2×檩条外伸），
+       超出最外侧品的外伸部分也画出；品与品按柱距排布；
+    2. 地面示意框范围与檩条总长一致。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -216,7 +214,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.17")
+        root.title("光伏支架线模生成器 V1.2.18")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -234,7 +232,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.17：梁中心偏移150修正立柱高度；斜撑长度联动")
+        self.set_status("就绪 V1.2.18：3D 檩条按实际总长绘制（含外伸），品按柱距排布")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1093,13 +1091,20 @@ class PvSupportApp:
         try:
             bay = float(self.vars["struct_bay"].get())
             frames = int(float(self.vars["struct_frames"].get()))
+            cols = int(float(self.vars["layout_cols"].get()))
+            W = float(self.vars["module_W"].get())
+            gap = float(self.vars["layout_gap"].get())
+            extension = float(self.vars["purlin_extension"].get())
             brace_front_off = float(self.vars["brace_front_off"].get())
             brace_rear_off = float(self.vars["brace_rear_off"].get())
             brace_ground = float(self.vars["brace_ground"].get())
         except (ValueError, tk.TclError):
-            bay, frames, brace_front_off, brace_rear_off, brace_ground = 2000, 3, 350, 350, 300
+            bay, frames, cols, W, gap, extension = 2000, 3, 15, 1134, 20, 150
+            brace_front_off, brace_rear_off, brace_ground = 350, 350, 300
 
         frames = max(1, min(12, frames))
+        purlin_total = cols * W + (cols - 1) * gap + 2 * extension
+        purlin_half = purlin_total / 2
         maxh = ground + rise
         double_col = self.vars["support_type"].get() == "单桩双立柱"
 
@@ -1132,17 +1137,16 @@ class PvSupportApp:
                     p = beam_pt(slope - brace_rear_off, y)
                     lines.append(((mid_x, y, brace_ground), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
 
-        # 檩条：横跨所有品
-        y0, y1 = frame_ys[0], frame_ys[-1]
+        # 檩条：按实际檩条总长绘制（超出最外侧品的外伸部分也画出）
         for t in self._purlin_positions():
             p = beam_pt(t, 0)
-            lines.append(((p[0], y0, p[2]), (p[0], y1, p[2]), MEMBER_COLORS["檩条"]))
+            lines.append(((p[0], -purlin_half, p[2]), (p[0], purlin_half, p[2]), MEMBER_COLORS["檩条"]))
 
         # 地面框
-        lines.append(((0, y0, 0), (span, y0, 0), "#9e9e9e", (4, 3)))
-        lines.append(((span, y0, 0), (span, y1, 0), "#9e9e9e", (4, 3)))
-        lines.append(((span, y1, 0), (0, y1, 0), "#9e9e9e", (4, 3)))
-        lines.append(((0, y1, 0), (0, y0, 0), "#9e9e9e", (4, 3)))
+        lines.append(((0, -purlin_half, 0), (span, -purlin_half, 0), "#9e9e9e", (4, 3)))
+        lines.append(((span, -purlin_half, 0), (span, purlin_half, 0), "#9e9e9e", (4, 3)))
+        lines.append(((span, purlin_half, 0), (0, purlin_half, 0), "#9e9e9e", (4, 3)))
+        lines.append(((0, purlin_half, 0), (0, -purlin_half, 0), "#9e9e9e", (4, 3)))
 
         cxw, cyw, czw = span / 2, 0.0, maxh / 2
         yaw = self.view_yaw
@@ -1156,7 +1160,7 @@ class PvSupportApp:
             z1 = z - czw
             return x1, y1, z1
 
-        total_depth = max(abs(y0), abs(y1)) * 2
+        total_depth = purlin_total
         maxdim = max(span, total_depth, maxh, 1.0)
         scale = min(w, h) / maxdim * 0.62 * self.view_zoom
         cx, cy = w / 2 + self.view_pan_x, h / 2 + self.view_pan_y
