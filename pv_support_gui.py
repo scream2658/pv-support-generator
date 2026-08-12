@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.44 — 界面骨架（MVP M1，2026-08-13 第四十六版）
+光伏支架线模生成器 V1.2.45 — 界面骨架（MVP M1，2026-08-13 第四十七版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.45 改动（左 380 / 右 900 定宽）：
+    1. 窗口总宽 1296（= 左侧 380 + 间距 + 右侧 900）；
+    2. 左侧栏固定 380px（①组件参数 / ②支架形式 / ③构件截面表），
+       内部控件零溢出；
+    3. 右侧面板固定 900px（④3D 预览 / ⑤荷载参数），
+       3D 预览与荷载参数区更宽松。
 
 V1.2.44 改动（窗口 960：左侧压缩 50px + 右侧加宽）：
     1. 窗口宽度 860 → 960（root.geometry），右侧荷载参数
@@ -266,8 +273,8 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.44")
-        root.geometry("960x820")
+        root.title("光伏支架线模生成器 V1.2.45")
+        root.geometry("1296x820")
         root.resizable(False, False)
         try:
             root.option_add("*Font", ("Microsoft YaHei UI", 10))
@@ -284,7 +291,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.44：窗口 960，左侧压缩 50px，右侧已加宽")
+        self.set_status("就绪 V1.2.45：左侧 380px，右侧 900px，窗口 1296")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -318,7 +325,7 @@ class PvSupportApp:
 
         left = ScrollableFrame(main)
         left.pack(side="left", fill="y", padx=(0, 6))
-        left.configure(width=342)
+        left.configure(width=380)
         left.pack_propagate(False)
 
         right = ttk.Frame(main)
