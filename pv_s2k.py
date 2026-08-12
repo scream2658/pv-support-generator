@@ -124,9 +124,11 @@ def _mat_mech():
 def _mat_steel():
     return [
         '   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   '
-        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1',
+        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1   '
+        'CoupModType="Von Mises"',
         '   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   '
-        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1',
+        'SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1   '
+        'CoupModType="Von Mises"',
     ]
 
 
@@ -157,7 +159,7 @@ def write_s2k(params, path):
     out = []
     out.append('TABLE:  "PROGRAM CONTROL"')
     out.append('   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   '
-               'CurrUnits="N, mm, C"')
+               'CurrUnits="N, mm, C"   SteelCode="Chinese 2018"')
     out.append('')
     out.append('TABLE:  "ACTIVE DEGREES OF FREEDOM"')
     out.append('   UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes')

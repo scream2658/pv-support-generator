@@ -1,5 +1,5 @@
 TABLE:  "PROGRAM CONTROL"
-   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"
+   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"   SteelCode="Chinese 2018"
 
 TABLE:  "ACTIVE DEGREES OF FREEDOM"
    UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes
@@ -19,8 +19,8 @@ TABLE:  "MATERIAL PROPERTIES 02 - BASIC MECHANICAL PROPERTIES"
    Material=Q355   UnitWeight=7.7E-05   UnitMass=7.85E-09   E1=206000   G12=79230.76923076923   U12=0.3   A1=1.2E-05
 
 TABLE:  "MATERIAL PROPERTIES 03A - STEEL DATA"
-   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1
-   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1
+   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1   CoupModType="Von Mises"
+   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic   SHard=0.015   SMax=0.11   SRup=0.17   FinalSlope=-0.1   CoupModType="Von Mises"
 
 TABLE:  "FRAME SECTION PROPERTIES 01 - GENERAL"
    SectionName=Á¢Öù-²Û8   Material=Q235   Shape=Channel   t3=80   t2=43   tf=8.0   tw=5.0   FilletRadius=0   Area=1024.8   TorsConst=6916.666666666666   I33=1013000.0   I22=166000.0   I23=0   AS2=0   AS3=0   S33Top=25300.0   S33Bot=25300.0   S22Left=7800.0   S22Right=7800.0   Z33=0   Z22=0   R33=31.440190173688347   R22=12.727247381788889   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
