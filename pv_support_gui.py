@@ -105,6 +105,7 @@ import json
 import math
 import os
 import struct
+import sys
 import tkinter as tk
 import zlib
 from tkinter import filedialog, messagebox, ttk
@@ -114,6 +115,12 @@ from pv_geometry import write_dxf
 from pv_3d3s_text import write_3d3s_text
 from pv_sections import SECTIONS as SECTION_LIB
 from pv_s2k import write_s2k
+
+
+def resource_path(name):
+    """定位数据文件：兼容 PyInstaller 打包（_MEIPASS）与源码运行。"""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, name)
 
 
 # --------------------------------------------------------------------------
@@ -751,7 +758,7 @@ class PvSupportApp:
     # ------------------------------------------------------------ 城市查表
     def _load_city_data(self):
         self.city_data = {}
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "荷载规范城市数据.json")
+        path = resource_path("荷载规范城市数据.json")
         try:
             with open(path, "r", encoding="utf-8") as fp:
                 self.city_data = json.load(fp).get("data", {})
@@ -760,7 +767,7 @@ class PvSupportApp:
 
     def _load_seismic_data(self):
         self.seismic_data = {}
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "抗震设防数据.json")
+        path = resource_path("抗震设防数据.json")
         try:
             with open(path, "r", encoding="utf-8") as fp:
                 self.seismic_data = json.load(fp).get("data", {})
