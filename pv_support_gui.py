@@ -75,6 +75,14 @@ def prov_key(display):
     return (display.replace("省", "").replace("壮族", "").replace("回族", "")
             .replace("维吾尔", "").replace("自治区", "").replace("特别行政区", ""))
 
+
+def law_of_cosines(a, b, angle_deg):
+    """余弦定理：已知两边 a、b 及其夹角（度），求第三边。
+    c = √(a² + b² − 2ab·cos(angle_deg))，内部自动换算弧度。"""
+    return math.sqrt(max(0.0, a ** 2 + b ** 2
+                         - 2 * a * b * math.cos(math.radians(angle_deg))))
+
+
 MEMBER_ROLES = [
     ("立柱", "槽钢",   "槽8",                "Q235B"),
     ("斜梁", "C型钢",  "C110×70×50×2.0",    "Q355B"),
@@ -871,10 +879,8 @@ class PvSupportApp:
                 rear_side = max(0.0, rear_off)
             front_v = max(0.0, col_front_h - brace_ground)
             rear_v = max(0.0, col_rear_h - brace_ground)
-            front_len = math.sqrt(max(0.0, front_v ** 2 + front_side ** 2
-                                      - 2 * front_v * front_side * math.cos(math.radians(90 - tilt))))
-            rear_len = math.sqrt(max(0.0, rear_v ** 2 + rear_side ** 2
-                                     - 2 * rear_v * rear_side * math.cos(math.radians(90 + tilt))))
+            front_len = law_of_cosines(front_v, front_side, 90 - tilt)
+            rear_len = law_of_cosines(rear_v, rear_side, 90 + tilt)
             for entry, val in ((self.col_h_entry, col_front_h),
                                (self.front_brace_len_entry, front_len),
                                (self.rear_brace_len_entry, rear_len)):
