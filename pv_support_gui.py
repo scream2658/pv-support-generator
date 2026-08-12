@@ -1312,8 +1312,6 @@ class PvSupportApp:
             if spec not in SECTION_MODELS:
                 spec = "自定义"
             models = SECTION_MODELS[spec]
-            if model not in models:
-                model = models[0]
             self.section_spec_cbs[role].configure(values=SPEC_TYPES)
             self.section_model_cbs[role].configure(values=models)
             setv(f"sec_{role}_spec", spec)
