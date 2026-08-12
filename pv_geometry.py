@@ -196,48 +196,82 @@ def build_model(params):
 
 
 # --------------------------------------------------------------------------
-# 纯手写标准 DXF（AC1015，单位 mm）
+# DXF 导出（优先 ezdxf 生成标准 DXF；无 ezdxf 时回退到完整手写格式）
 # --------------------------------------------------------------------------
 
 def write_dxf(params, path):
     model = build_model(params)
-    nodes = model["nodes"]
-    lines = []
-    lines.append("0\nSECTION\n2\nHEADER\n")
-    lines.append("9\n$ACADVER\n1\nAC1015\n")
-    lines.append("9\n$INSUNITS\n70\n4\n")
-    lines.append("0\nENDSEC\n")
-
-    # TABLES：线型 + 图层
-    lines.append("0\nSECTION\n2\nTABLES\n")
-    lines.append("0\nTABLE\n2\nLTYPE\n70\n1\n")
-    lines.append("0\nLTYPE\n2\nCONTINUOUS\n70\n0\n3\nSolid line\n72\n65\n73\n0\n40\n0.0\n")
-    lines.append("0\nENDTAB\n")
-    lines.append("0\nTABLE\n2\nLAYER\n70\n%d\n" % len(LAYERS))
+    try:
+        import ezdxf
+    except ImportError:
+        _write_dxf_raw(model, path)
+        return model
+    doc = ezdxf.new("R2000")               # AC1015，AutoCAD 2000 及以上
+    doc.units = ezdxf.units.MM
+    doc.header["$PDMODE"] = 3              # 支座点显示为交叉点
     for name, color in LAYERS.items():
-        lines.append("0\nLAYER\n2\n%s\n70\n0\n62\n%d\n6\nCONTINUOUS\n" % (name, color))
-    lines.append("0\nENDTAB\n")
-    lines.append("0\nENDSEC\n")
+        doc.layers.add(name, color=color)
+    msp = doc.modelspace()
+    nodes = model["nodes"]
+    for kind, i, j in model["members"]:
+        msp.add_line(nodes[i], nodes[j], dxfattribs={"layer": MEMBER_LAYER[kind]})
+    for idx in model["supports"]:
+        msp.add_point(nodes[idx], dxfattribs={"layer": "L-SUPPORT"})
+    doc.saveas(path)
+    return model
 
-    # ENTITIES：杆件 LINE + 支座 POINT
-    lines.append("0\nSECTION\n2\nENTITIES\n")
+
+def _write_dxf_raw(model, path):
+    """完整手写 DXF（含 BLOCKS/OBJECTS/BLOCK_RECORD 等必需段），作为无 ezdxf 时的回退。"""
+    nodes = model["nodes"]
+    out = []
+    out.append("0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
+               "9\n$INSUNITS\n70\n4\n9\n$PDMODE\n70\n3\n0\nENDSEC\n")
+    # CLASSES（空段）
+    out.append("0\nSECTION\n2\nCLASSES\n0\nENDSEC\n")
+    # TABLES
+    out.append("0\nSECTION\n2\nTABLES\n")
+    out.append("0\nTABLE\n2\nLTYPE\n70\n1\n"
+               "0\nLTYPE\n2\nCONTINUOUS\n70\n0\n3\nSolid line\n72\n65\n73\n0\n40\n0.0\n"
+               "0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nLAYER\n70\n%d\n" % len(LAYERS))
+    for name, color in LAYERS.items():
+        out.append("0\nLAYER\n2\n%s\n70\n0\n62\n%d\n6\nCONTINUOUS\n" % (name, color))
+    out.append("0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nSTYLE\n70\n0\n0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nVIEW\n70\n0\n0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nUCS\n70\n0\n0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nAPPID\n70\n1\n"
+               "0\nAPPID\n2\nACAD\n70\n0\n0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nDIMSTYLE\n70\n1\n"
+               "0\nDIMSTYLE\n2\nSTANDARD\n70\n0\n0\nENDTAB\n")
+    out.append("0\nTABLE\n2\nBLOCK_RECORD\n70\n1\n"
+               "0\nBLOCK_RECORD\n2\n*Model_Space\n0\nENDTAB\n")
+    out.append("0\nENDSEC\n")
+    # BLOCKS
+    out.append("0\nSECTION\n2\nBLOCKS\n"
+               "0\nBLOCK\n8\n0\n2\n*Model_Space\n70\n0\n10\n0.0\n20\n0.0\n30\n0.0\n"
+               "3\n*Model_Space\n1\n\n0\nENDBLK\n8\n0\n0\nENDSEC\n")
+    # ENTITIES
+    out.append("0\nSECTION\n2\nENTITIES\n")
     for kind, i, j in model["members"]:
         layer = MEMBER_LAYER[kind]
         x1, y1, z1 = nodes[i]
         x2, y2, z2 = nodes[j]
-        lines.append(
-            "0\nLINE\n8\n%s\n10\n%.3f\n20\n%.3f\n30\n%.3f\n"
-            "11\n%.3f\n21\n%.3f\n31\n%.3f\n" % (layer, x1, y1, z1, x2, y2, z2)
-        )
+        out.append("0\nLINE\n8\n%s\n10\n%.3f\n20\n%.3f\n30\n%.3f\n"
+                   "11\n%.3f\n21\n%.3f\n31\n%.3f\n" % (layer, x1, y1, z1, x2, y2, z2))
     for idx in model["supports"]:
         x, y, z = nodes[idx]
-        lines.append("0\nPOINT\n8\nL-SUPPORT\n10\n%.3f\n20\n%.3f\n30\n%.3f\n" % (x, y, z))
-    lines.append("0\nENDSEC\n")
-    lines.append("0\nEOF\n")
-
+        out.append("0\nPOINT\n8\nL-SUPPORT\n10\n%.3f\n20\n%.3f\n30\n%.3f\n" % (x, y, z))
+    out.append("0\nENDSEC\n")
+    # OBJECTS
+    out.append("0\nSECTION\n2\nOBJECTS\n"
+               "0\nDICTIONARY\n5\nC\n330\n0\n100\nAcDbDictionary\n281\n1\n"
+               "3\nACAD_GROUP\n350\nD\n0\nDICTIONARY\n5\nD\n330\nC\n100\nAcDbDictionary\n281\n1\n"
+               "0\nENDSEC\n")
+    out.append("0\nEOF\n")
     with open(path, "w", encoding="ascii", errors="replace") as fh:
-        fh.write("".join(lines))
-    return model
+        fh.write("".join(out))
 
 
 if __name__ == "__main__":

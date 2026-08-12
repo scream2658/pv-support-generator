@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.21 — 界面骨架（MVP M1，2026-08-12 第二十四版）
+光伏支架线模生成器 V1.2.22 — 界面骨架（MVP M1，2026-08-12 第二十五版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.21 改动（M2 几何引擎起步）：
-    1. 新增 pv_geometry.py 几何引擎：参数 → 节点/杆件线模
-       （立柱/斜梁/檩条通长/前后斜撑/支座），支持单立柱与单桩双立柱、任意榀数；
-    2. 生成 DXF 按钮接入真实导出（纯手写标准 DXF，无第三方依赖，
-       图层按构件分组：L-COLUMN / L-BEAM / L-PURLIN / L-BRACE / L-SUPPORT）；
-    3. 已实测：9 榀单立柱 71 节点/40 杆件；双立柱 80 节点/49 杆件。
+V1.2.22 改动（DXF 修复）：
+    1. 修复"数据不完整"打不开问题：手写 DXF 缺少必需表格段，
+       改用 ezdxf 生成标准 DXF（AC1015/mm），ezdxf 回读校验 0 错误；
+    2. 保留完整手写 DXF 作为无 ezdxf 时的回退路径；
+    3. 参数均以界面可调为准，DXF 已可正常打开。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -218,7 +217,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.21")
+        root.title("光伏支架线模生成器 V1.2.22")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -236,7 +235,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.21：几何引擎接入，生成 DXF 已可用")
+        self.set_status("就绪 V1.2.22：DXF 改用 ezdxf 生成，已修复打不开问题")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
