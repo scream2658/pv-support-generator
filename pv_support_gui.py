@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.19 — 界面骨架（MVP M1，2026-08-12 第二十二版）
+光伏支架线模生成器 V1.2.20 — 界面骨架（MVP M1，2026-08-12 第二十三版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.19 改动（悬挑口径与 3D 一致）：
-    1. 檩条悬挑 = (檩条总长 − (品数−1)×柱距) / 2，与 3D 图实际外伸一致；
-    2. 超限提醒同步：悬挑 ＞800 或 ＜0 时提醒；品跨 (品数−1)×柱距
-       超出组件阵列总长时提醒；
-    3. 默认品数调整为 9（柱距2000 → 品跨16000、悬挑795，落在合理区间）。
+V1.2.20 改动（热修复）：
+    1. 修复启动崩溃：update_calc 中补充读取倾角(tilt)与最低点高度(ground)
+       两个变量（V1.2.16 引入斜撑计算后漏读，导致启动即 NameError）；
+    2. 已实际启动验证：默认值 梁长4000/悬挑795/檩条总长17590/立柱1534/
+       前斜撑1689/后斜撑2374，超限提醒逻辑正常。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -215,7 +215,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.19")
+        root.title("光伏支架线模生成器 V1.2.20")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -233,7 +233,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.19：悬挑按实际口径 (总长−(品数−1)×柱距)/2，默认品数9")
+        self.set_status("就绪 V1.2.20：启动崩溃已修复，参数联动正常")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -830,6 +830,8 @@ class PvSupportApp:
             L = float(self.vars["module_L"].get())
             W = float(self.vars["module_W"].get())
             power = float(self.vars["module_power"].get())
+            tilt = float(self.vars["layout_tilt"].get())
+            ground = float(self.vars["layout_ground_gap"].get())
 
             total_width = rows * L + (rows - 1) * gap
             total_length = cols * W + (cols - 1) * gap
