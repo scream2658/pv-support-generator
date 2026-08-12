@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.10 — 界面骨架（MVP M1，2026-08-12 第十三版）
+光伏支架线模生成器 V1.2.11 — 界面骨架（MVP M1，2026-08-12 第十四版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.10 改动（按界面标注）：
-    1. 所有数值输入框右对齐；
-    2. ④ 3D 预览：左下角 XYZ 坐标放大到适中；构件颜色图例缩小；
-    3. ② 支架形式：倾角改到画布右上角固定显示（不随缩放/平移移动）；
-    4. ⑤ 荷载参数：省/市/区县/抗震设防选择行移到基本荷载与风压系数之上；
-       名称规范化：风压高度系数、正/负风压体型系数；
-       沿海系数输入框常亮（灰白禁用背景去掉）；
-    5. ② 斜梁长度改为数据框显示具体数值（去掉"≈"）。
+V1.2.11 改动（按界面标注）：
+    1. 沿海城市风压放大系数复选框背景色与面板一致（去掉灰白底）；
+    2. 配色调整：斜撑=粉红色、支座=红色；
+    3. ④ 3D 预览：XYZ 坐标放大 1.3 倍，X/Y/Z 文字与坐标线拉开距离；
+    4. ② 支架形式：倾角文字左移避免遮挡；
+    5. ② 斜梁长度数据框宽度与上方输入框一致；隐藏计算公式文字（含檩条总长公式）；
+    6. "檩条外伸"标签改为"檩条外伸长度"；
+    7. ③ 构件截面表标题恢复靠左；
+    8. "风压/雪压（规范值，已锁定）"提示移到荷载区最底部显示。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -91,8 +92,8 @@ MEMBER_COLORS = {
     "立柱": "#f9a825",
     "斜梁": "#1e88e5",
     "檩条": "#43a047",
-    "斜撑": "#e53935",
-    "支座": "#ffffff",
+    "斜撑": "#ec407a",
+    "支座": "#e53935",
 }
 
 DEFAULT_PARAMS = {
@@ -210,7 +211,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.10")
+        root.title("光伏支架线模生成器 V1.2.11")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -228,7 +229,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.10：数值右对齐；倾角固定右上角；省市县置顶；斜梁长度数据框")
+        self.set_status("就绪 V1.2.11：斜撑粉红/支座红；坐标放大；公式隐藏；风压提示置底")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -384,7 +385,7 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="檩条外伸").grid(row=6, column=3, sticky="w", pady=2)
+        ttk.Label(grp, text="檩条外伸长度").grid(row=6, column=3, sticky="w", pady=2)
         self.vars["purlin_extension"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
         e.grid(row=6, column=4, sticky="w", padx=(4, 2))
@@ -392,10 +393,10 @@ class PvSupportApp:
         ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
         ttk.Label(grp, text="斜梁长度").grid(row=7, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=8, state="readonly", justify="right")
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
         self.beam_len_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
         ttk.Label(
-            grp, text="mm（端距×2 + (檩条数-1)×间距）", foreground="#757575",
+            grp, text="mm", foreground="#757575",
             font=("Microsoft YaHei UI", 8),
         ).grid(row=7, column=2, columnspan=4, sticky="w")
         self.purlin_len_label = ttk.Label(
@@ -410,7 +411,7 @@ class PvSupportApp:
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="③ 构件截面表", labelanchor="n", padding=(8, 4))
+        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(8, 4))
         grp.pack(fill="x")
 
         ttk.Label(grp, text="构件", anchor="center").grid(row=0, column=0, sticky="ew", padx=(0, 6))
@@ -561,7 +562,7 @@ class PvSupportApp:
         self.city_result_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
         )
-        self.city_result_label.grid(row=2, column=0, columnspan=12, sticky="w", pady=(2, 0))
+        self.city_result_label.grid(row=10, column=0, columnspan=12, sticky="w", pady=(2, 0))
 
         # 下段：基本荷载 + 风压系数
         ttk.Label(
@@ -597,10 +598,12 @@ class PvSupportApp:
         entry(7, 2, "负风压体型系数", "load_mu_s_neg", -1.30)
         coast_frame = ttk.Frame(grp)
         coast_frame.grid(row=8, column=4, columnspan=3, sticky="w", pady=2)
+        panel_bg = ttk.Style().lookup("TFrame", "background")
         self.vars["load_coastal_enabled"] = tk.BooleanVar(value=False)
         tk.Checkbutton(
             coast_frame, text="沿海城市风压放大系数", variable=self.vars["load_coastal_enabled"],
-            command=self._toggle_coastal,
+            command=self._toggle_coastal, bg=panel_bg, activebackground=panel_bg,
+            relief="flat", bd=0, highlightthickness=0,
         ).pack(side="left")
         self.vars["load_coastal"] = tk.StringVar()
         self.coastal_entry = ttk.Entry(
@@ -803,7 +806,7 @@ class PvSupportApp:
             self.beam_len_entry.insert(0, f"{beam_len:.0f}")
             self.beam_len_entry.configure(state="readonly")
             self.purlin_len_label.config(
-                text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm（组件总长 + 2×外伸）"
+                text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm"
             )
             frames_len = frames * bay
             if frames_len > total_length:
@@ -937,7 +940,7 @@ class PvSupportApp:
 
         # 倾角：固定显示在画布右上角，不随缩放/平移移动
         c.create_text(
-            cw - 8, 12, anchor="ne", text=f"倾角 {math.degrees(a):.0f}度",
+            cw - 18, 12, anchor="ne", text=f"倾角 {math.degrees(a):.0f}度",
             fill="#424242", font=("Microsoft YaHei UI", 9, "bold"),
         )
 
@@ -1068,9 +1071,10 @@ class PvSupportApp:
             dx = (v[0] - o[0]) * scale
             dy = -(v[2] - o[2]) * scale * cp + (v[1] - o[1]) * scale * sp
             ln = math.hypot(dx, dy) or 1.0
-            ex, ey = dx / ln * 26, dy / ln * 26
+            ex, ey = dx / ln * 34, dy / ln * 34
             c.create_line(bx0, by0, bx0 + ex, by0 + ey, fill=color, width=2)
-            c.create_text(bx0 + ex, by0 + ey - 5, text=label, fill=color,
+            lx, ly = bx0 + ex / 34 * 43, by0 + ey / 34 * 43
+            c.create_text(lx, ly - 4, text=label, fill=color,
                           font=("Microsoft YaHei UI", 9, "bold"))
 
         c.create_text(
