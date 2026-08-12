@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.49 — 界面骨架（MVP M1，2026-08-13 第五十一版）
+光伏支架线模生成器 V0.2.0 — 正式版（2026-08-13）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.49 改动（打开工程整数值显示修复）：
-    1. 原因：保存工程时 collect_params 将数值统一转 float，
-       打开工程时 setv 用 str(value) 显示 → 2278.0 / 20.0 等；
-    2. 修复：apply_params 的 setv 对整数浮点值（value.is_integer()）
-       先转 int 再显示，整数字段恢复 2278/35/545/20/2000，
-       小数（28.5/0.05/1.1）保持原样；
-    3. 仅改显示层，保存/导出逻辑未动，旧工程文件也自动修正。
+V0.2.0 正式版说明：
+    1. 首个正式发布版本：参数化建模 GUI、城市/抗震查表、
+       2D/3D 预览、DXF / 3D3S / SAP2000 三路导出全部可用；
+    2. 版本号由 V1.2.49 迭代版统一为 V0.2.0 正式代号；
+    3. 历史迭代记录详见《需求文档.md》。
 
 V1.2.48 改动（导出失败友好提示）：
     1. 生成 DXF / 3D3S / SAP2000 三个导出按钮统一错误提示：
@@ -302,7 +300,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.49")
+        root.title("光伏支架线模生成器 V0.2.0")
         root.geometry("916x820")
         root.resizable(False, False)
         try:
@@ -320,7 +318,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.49：打开工程整数值已恢复正常显示")
+        self.set_status("就绪 V0.2.0：正式版（DXF / 3D3S / SAP2000 导出可用）")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
