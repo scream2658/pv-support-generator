@@ -167,8 +167,15 @@ def write_3d3s_text(params, path):
         tid, sid, _ = sec_map.get((spec, secname), (0, 0, None))
         matid = mat_ids.get(sec.get("material", "Q235B"), 1)
         angle = ROLE_ANGLE.get(kind, 90)
+        # 檩条按自身位置设置 K 节点（x 同檩条、z 上方），保证 4 根严格平行；
+        # 其余构件沿用全局 K（已实测方位正确）
+        if kind == "檩条":
+            x1, y1, z1 = nodes[i1]
+            mkx, mky, mkz = x1, y1, z1 + 1000
+        else:
+            mkx, mky, mkz = kx, ky, kz
         out.append("%d, BEAM, %d, %d, %d, %d, %d, %.3f, %.3f, %.3f, 2, %d, 4, 0, 0, 0, 0, -1, 0, 0, %d"
-                   % (i, matid, tid, sid, i1, i2, kx, ky, kz, angle, i))
+                   % (i, matid, tid, sid, i1, i2, mkx, mky, mkz, angle, i))
 
     # 支座（柱脚刚接）
     out.append("*CONSTRAINT")
