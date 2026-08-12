@@ -16,15 +16,22 @@ from pv_sections import MATERIALS, SECTIONS, get_props
 
 
 SHAPE = {
-    "C型钢": "C",
+    "C型钢": '"Cold Formed C"',
+    "Z型钢": '"Cold Formed C"',
+    "U型钢": '"Cold Formed C"',
     "槽钢": "Channel",
     "角钢": "Angle",
     "方钢管": "Tube",
     "矩形钢管": "Tube",
     "圆钢/圆管": "Pipe",
-    "Z型钢": "C",
-    "U型钢": "C",
 }
+
+# 槽钢翼缘厚度（GB，近似，供 Channel 截面 tf 用）
+CHANNEL_TF = {"槽8": 8.0, "槽10": 8.5, "槽12": 9.0, "槽14a": 9.5, "槽16a": 10.0,
+              "槽18a": 10.5, "槽20a": 11.0}
+
+# SAP2000 局部轴转角（与 3D3S 定版值相差 90°，仅檩条不同）
+S2K_ANGLE = {"斜梁": 0, "檩条": 160, "斜撑": 90, "立柱": 180}
 
 
 def _dims(spec, model):
@@ -40,32 +47,59 @@ def _sec_row(name, mat, spec, model):
     if spec == "C型钢":
         h = dims[0] if dims else 100
         b = dims[1] if dims else 50
+        c = dims[2] if dims else 20
         t = dims[3] if dims else 2.0
+        shape = '"Cold Formed C"'
+        shape_fields = [("t3", h), ("t2", b), ("tw", t), ("Radius", 0), ("LipDepth", c)]
     elif spec in ("方钢管", "矩形钢管"):
         h, b, t = dims if dims else (100, 50, 3.0)
+        shape = "Tube"
+        shape_fields = [("t3", h), ("t2", b), ("tw", t)]
     elif spec == "圆钢/圆管":
         h = dims[0] if dims else 48
         b = h
         t = dims[1] if len(dims or ()) > 1 else h / 2
+        shape = "Pipe" if len(dims or ()) > 1 else "Circle"
+        shape_fields = [("t3", h), ("tw", t)]
+    elif spec == "槽钢":
+        h = dims[0] if dims else 80
+        b = dims[1] if dims else 43
+        t = dims[2] if dims else 5.0
+        tf = CHANNEL_TF.get(model, t * 1.6)
+        shape = "Channel"
+        shape_fields = [("t3", h), ("t2", b), ("tf", tf), ("tw", t), ("FilletRadius", 0)]
+    elif spec == "角钢":
+        b = dims[0] if dims else 50
+        t = dims[1] if dims else 5
+        shape = "Angle"
+        shape_fields = [("t3", b), ("t2", b), ("tf", t), ("tw", t), ("FilletRadius", 0)]
     elif dims:
         h = dims[0]
         b = dims[1] if len(dims) > 1 else h
         t = dims[2] if len(dims) > 2 else (dims[1] if len(dims) > 1 else 3)
+        shape = SHAPE.get(spec, "C")
+        shape_fields = [("t3", h), ("t2", b), ("tw", t)]
     else:
         h = b = t = 50.0
+        shape = SHAPE.get(spec, "C")
+        shape_fields = [("t3", h), ("t2", b), ("tw", t)]
     if p is None:
         p = {"A": 500.0, "I1": 1e6, "I2": 3e5, "W1": 2e4, "W2": 1e4, "J": 1e3}
     r33 = math.sqrt(p["I1"] / p["A"]) if p["A"] > 0 else 0
     r22 = math.sqrt(p["I2"] / p["A"]) if p["A"] > 0 else 0
-    return ("SectionName=%s   Material=%s   Shape=%s   t3=%g   t2=%g   tw=%g   "
-            "Radius=0   LipDepth=0   Area=%g   TorsConst=%g   I33=%g   I22=%g   I23=0   "
-            "AS2=0   AS3=0   S33Top=%g   S33Bot=%g   S22Left=%g   S22Right=%g   Z33=0   Z22=0   "
-            "R33=%g   R22=%g   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   "
-            "IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   "
-            "FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1"
-            % (name, mat, SHAPE.get(spec, "C"), h, b, t,
-               p["A"], p["J"], p["I1"], p["I2"],
-               p["W1"], p["W1"], p["W2"], p["W2"], r33, r22))
+    fields = [("SectionName", name), ("Material", mat), ("Shape", shape)]
+    fields += shape_fields
+    fields += [("Area", p["A"]), ("TorsConst", p["J"]), ("I33", p["I1"]), ("I22", p["I2"]),
+               ("I23", 0), ("AS2", 0), ("AS3", 0),
+               ("S33Top", p["W1"]), ("S33Bot", p["W1"]),
+               ("S22Left", p["W2"]), ("S22Right", p["W2"]),
+               ("Z33", 0), ("Z22", 0), ("R33", r33), ("R22", r22),
+               ("CGOffset3", 0), ("CGOffset2", 0), ("EccV2", 0), ("EccV3", 0), ("Cw", 0),
+               ("IncludeSCAn", "No"), ("ConcCol", "No"), ("ConcBeam", "No"), ("Color", "Default"),
+               ("TotalWt", 0), ("TotalMass", 0), ("FromFile", "No"),
+               ("AMod", 1), ("A2Mod", 1), ("A3Mod", 1), ("JMod", 1),
+               ("I2Mod", 1), ("I3Mod", 1), ("MMod", 1), ("WMod", 1)]
+    return "   " + "   ".join("%s=%s" % (k, v) for k, v in fields)
 
 
 def _mat_rows():
@@ -149,7 +183,7 @@ def write_s2k(params, path):
         spec = sec.get("spec", "自定义")
         model_name = sec.get("model", "自定义")
         mat = "Q355" if sec.get("material", "").startswith("Q355") else "Q235"
-        name = "%s-%s" % (kind, model_name)
+        name = "%s-%s" % (kind, model_name.replace("×", "x"))
         if name not in sections:
             sections[name] = (mat, spec, model_name)
             out.append(_sec_row(name, mat, spec, model_name))
@@ -171,7 +205,7 @@ def write_s2k(params, path):
     out.append('TABLE:  "FRAME SECTION ASSIGNMENTS"')
     for i, (kind, _a, _b) in enumerate(members, start=1):
         sec = params.get("sections", {}).get(kind, {})
-        name = "%s-%s" % (kind, sec.get("model", "自定义"))
+        name = "%s-%s" % (kind, sec.get("model", "自定义").replace("×", "x"))
         mat = sections[name][0]
         out.append('   Frame=%d   SectionType=Frame   AutoSelect=No   AnalSect=%s   DesignSect=%s   MatProp=%s'
                    % (i, name, name, mat))
@@ -186,7 +220,7 @@ def write_s2k(params, path):
     # 局部轴转角
     out.append('TABLE:  "FRAME LOCAL AXES ASSIGNMENTS 1 - TYPICAL"')
     for i, (kind, _a, _b) in enumerate(members, start=1):
-        out.append('   Frame=%d   Angle=%d   AdvanceAxes=No' % (i, ROLE_ANGLE.get(kind, 90)))
+        out.append('   Frame=%d   Angle=%d   AdvanceAxes=No' % (i, S2K_ANGLE.get(kind, 90)))
     out.append('')
 
     # 荷载工况
@@ -197,12 +231,18 @@ def write_s2k(params, path):
     out.append('   LoadPat=wz     DesignType=Wind   SelfWtMult=0')
     out.append('')
     out.append('TABLE:  "LOAD CASE DEFINITIONS"')
-    for case in ("DEAD", "snow", "wp", "wz"):
-        out.append('   Case=%s   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes' % case)
+    for case, dtype, dact in (
+            ("DEAD", "Dead", "Non-Composite"),
+            ("snow", "Dead", "Non-Composite"),
+            ("wp", "Wind", "Short-Term Composite"),
+            ("wz", "Wind", "Short-Term Composite")):
+        out.append('   Case=%s   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   '
+                   'DesignType=%s   DesActOpt="Prog Det"   DesignAct=%s   AutoType=None   '
+                   'RunCase=Yes   CaseStatus="Not Run"' % (case, dtype, dact))
     out.append('')
     out.append('TABLE:  "CASE - STATIC 1 - LOAD ASSIGNMENTS"')
     for case in ("DEAD", "snow", "wp", "wz"):
-        out.append('   Case=%s   LoadType=Load   LoadName=%s   LoadSF=1' % (case, case))
+        out.append('   Case=%s   LoadType="Load pattern"   LoadName=%s   LoadSF=1' % (case, case))
     out.append('')
 
     # 檩条分布荷载（恒=组件+附件；雪=重力；风=局部2向）

@@ -23,10 +23,10 @@ TABLE:  "MATERIAL PROPERTIES 03A - STEEL DATA"
    Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic
 
 TABLE:  "FRAME SECTION PROPERTIES 01 - GENERAL"
-SectionName=Á¢Öù-²Û8   Material=Q235   Shape=Channel   t3=80   t2=43   tw=5   Radius=0   LipDepth=0   Area=1024.8   TorsConst=6916.67   I33=1.013e+06   I22=166000   I23=0   AS2=0   AS3=0   S33Top=25300   S33Bot=25300   S22Left=7800   S22Right=7800   Z33=0   Z22=0   R33=31.4402   R22=12.7272   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
-SectionName=Ð±Áº-C140X50X20X2.5   Material=Q355   Shape=C   t3=140   t2=50   tw=2.5   Radius=0   LipDepth=0   Area=648   TorsConst=1458.33   I33=1.8678e+06   I22=221100   I23=0   AS2=0   AS3=0   S33Top=26682.9   S33Bot=26682.9   S22Left=8844   S22Right=8844   Z33=0   Z22=0   R33=53.6881   R22=18.4717   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
-SectionName=Ð±³Å-L50¡Á5   Material=Q235   Shape=Angle   t3=50   t2=5   tw=5   Radius=0   LipDepth=0   Area=475   TorsConst=3958.33   I33=112503   I22=112503   I23=0   AS2=0   AS3=0   S33Top=3155.06   S33Bot=3155.06   S22Left=3155.06   S22Right=3155.06   Z33=0   Z22=0   R33=15.3899   R22=15.3899   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
-SectionName=éÝÌõ-C100X50X15X2.5   Material=Q235   Shape=C   t3=100   t2=50   tw=2.5   Radius=0   LipDepth=0   Area=523   TorsConst=1197.92   I33=813400   I22=171900   I23=0   AS2=0   AS3=0   S33Top=16268   S33Bot=16268   S22Left=6876   S22Right=6876   Z33=0   Z22=0   R33=39.4368   R22=18.1296   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+   SectionName=Á¢Öù-²Û8   Material=Q235   Shape=Channel   t3=80   t2=43   tf=8.0   tw=5.0   FilletRadius=0   Area=1024.8   TorsConst=6916.666666666666   I33=1013000.0   I22=166000.0   I23=0   AS2=0   AS3=0   S33Top=25300.0   S33Bot=25300.0   S22Left=7800.0   S22Right=7800.0   Z33=0   Z22=0   R33=31.440190173688347   R22=12.727247381788889   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+   SectionName=Ð±Áº-C140X50X20X2.5   Material=Q355   Shape="Cold Formed C"   t3=140.0   t2=50.0   tw=2.5   Radius=0   LipDepth=20.0   Area=648.0   TorsConst=1458.3333333333333   I33=1867800.0   I22=221100.0   I23=0   AS2=0   AS3=0   S33Top=26682.85714285714   S33Bot=26682.85714285714   S22Left=8844.0   S22Right=8844.0   Z33=0   Z22=0   R33=53.68805646889639   R22=18.471700076162552   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+   SectionName=Ð±³Å-L50x5   Material=Q235   Shape=Angle   t3=50   t2=50   tf=5   tw=5   FilletRadius=0   Area=475.0   TorsConst=3958.3333333333335   I33=112502.74122807018   I22=112502.74122807017   I23=0   AS2=0   AS3=0   S33Top=3155.0584255842564   S33Bot=3155.0584255842564   S22Left=3155.058425584256   S22Right=3155.058425584256   Z33=0   Z22=0   R33=15.389862776179047   R22=15.389862776179045   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+   SectionName=éÝÌõ-C100X50X15X2.5   Material=Q235   Shape="Cold Formed C"   t3=100.0   t2=50.0   tw=2.5   Radius=0   LipDepth=15.0   Area=523.0   TorsConst=1197.9166666666665   I33=813400.0   I22=171900.0   I23=0   AS2=0   AS3=0   S33Top=16268.0   S33Bot=16268.0   S22Left=6876.0   S22Right=6876.0   Z33=0   Z22=0   R33=39.43676110173132   R22=18.129552899520718   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
 
 TABLE:  "JOINT COORDINATES"
    Joint=1   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-8000.000   Z=0.000   SpecialJt=Yes
@@ -146,40 +146,40 @@ TABLE:  "CONNECTIVITY - FRAME"
 TABLE:  "FRAME SECTION ASSIGNMENTS"
    Frame=1   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=2   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=3   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=4   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=3   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=4   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=5   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=6   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=7   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=8   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=7   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=8   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=9   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=10   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=11   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=12   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=11   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=12   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=13   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=14   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=15   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=16   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=15   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=16   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=17   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=18   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=19   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=20   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=19   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=20   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=21   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=22   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=23   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=24   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=23   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=24   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=25   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=26   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=27   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=28   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=27   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=28   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=29   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=30   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=31   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=32   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=31   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=32   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=33   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
    Frame=34   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
-   Frame=35   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
-   Frame=36   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=35   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
+   Frame=36   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50x5   DesignSect=Ð±³Å-L50x5   MatProp=Q235
    Frame=37   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
    Frame=38   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
    Frame=39   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
@@ -233,10 +233,10 @@ TABLE:  "FRAME LOCAL AXES ASSIGNMENTS 1 - TYPICAL"
    Frame=34   Angle=0   AdvanceAxes=No
    Frame=35   Angle=90   AdvanceAxes=No
    Frame=36   Angle=90   AdvanceAxes=No
-   Frame=37   Angle=70   AdvanceAxes=No
-   Frame=38   Angle=70   AdvanceAxes=No
-   Frame=39   Angle=70   AdvanceAxes=No
-   Frame=40   Angle=70   AdvanceAxes=No
+   Frame=37   Angle=160   AdvanceAxes=No
+   Frame=38   Angle=160   AdvanceAxes=No
+   Frame=39   Angle=160   AdvanceAxes=No
+   Frame=40   Angle=160   AdvanceAxes=No
 
 TABLE:  "LOAD PATTERN DEFINITIONS"
    LoadPat=DEAD   DesignType=Dead   SelfWtMult=1
@@ -245,16 +245,16 @@ TABLE:  "LOAD PATTERN DEFINITIONS"
    LoadPat=wz     DesignType=Wind   SelfWtMult=0
 
 TABLE:  "LOAD CASE DEFINITIONS"
-   Case=DEAD   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
-   Case=snow   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
-   Case=wp   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
-   Case=wz   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
+   Case=DEAD   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   DesignType=Dead   DesActOpt="Prog Det"   DesignAct=Non-Composite   AutoType=None   RunCase=Yes   CaseStatus="Not Run"
+   Case=snow   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   DesignType=Dead   DesActOpt="Prog Det"   DesignAct=Non-Composite   AutoType=None   RunCase=Yes   CaseStatus="Not Run"
+   Case=wp   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   DesignType=Wind   DesActOpt="Prog Det"   DesignAct=Short-Term Composite   AutoType=None   RunCase=Yes   CaseStatus="Not Run"
+   Case=wz   Type=LinStatic   InitialCond=Zero   DesTypeOpt="Prog Det"   DesignType=Wind   DesActOpt="Prog Det"   DesignAct=Short-Term Composite   AutoType=None   RunCase=Yes   CaseStatus="Not Run"
 
 TABLE:  "CASE - STATIC 1 - LOAD ASSIGNMENTS"
-   Case=DEAD   LoadType=Load   LoadName=DEAD   LoadSF=1
-   Case=snow   LoadType=Load   LoadName=snow   LoadSF=1
-   Case=wp   LoadType=Load   LoadName=wp   LoadSF=1
-   Case=wz   LoadType=Load   LoadName=wz   LoadSF=1
+   Case=DEAD   LoadType="Load pattern"   LoadName=DEAD   LoadSF=1
+   Case=snow   LoadType="Load pattern"   LoadName=snow   LoadSF=1
+   Case=wp   LoadType="Load pattern"   LoadName=wp   LoadSF=1
+   Case=wz   LoadType="Load pattern"   LoadName=wz   LoadSF=1
 
 TABLE:  "FRAME LOADS - DISTRIBUTED"
    Frame=37   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2215   FOverLB=0.2215
