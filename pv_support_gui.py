@@ -1,9 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.37 — 界面骨架（MVP M1，2026-08-12 第三十九版）
+光伏支架线模生成器 V1.2.39 — 界面骨架（MVP M1，2026-08-12 第四十一版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.39 改动（界面收紧 + 警告弹窗）：
+    1. ② 支架形式参数表去掉两处常驻空行（品跨/悬挑红字标签），
+       参数有工程逻辑问题时改为按钮动作时弹窗提示；
+    2. ⑤ 荷载参数"省/市/区县/抗震设防"一行整体收紧：
+       下拉框宽度、标签间距全部压缩，消除"区县→抗震设防"大空档。
+
+V1.2.38 改动（SAP2000 双警告消除 + 中国规范复核）：
+    1. 材料表补 CoupModType="Von Mises"（0 错误 0 警告）；
+    2. PROGRAM CONTROL 写回 SteelCode="Chinese 2018"；
+    3. 复核本机 SAP2000 26/27 内置 Chinese 2018 规范（未缺失）。
 
 V1.2.37 改动（SAP2000 收尾）：
     1. 0 错误确认；42 警告中 40 条为 AutoSelect=No 不被识别，
@@ -216,7 +227,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.37")
+        root.title("光伏支架线模生成器 V1.2.39")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -234,7 +245,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.37：SAP2000 0错误，风压垂直于梁面（正负相反）")
+        self.set_status("就绪 V1.2.39：参数报错改为弹窗，省市一行已收紧")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -348,6 +359,7 @@ class PvSupportApp:
         self.profile_pan_x = 0.0
         self.profile_pan_y = 0.0
         self._profile_drag = None
+        self._pending_warnings = []
 
         def pair(row, label1, key1, unit1, label2, key2, unit2):
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
@@ -396,60 +408,48 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
 
-        self.frame_warn_label = ttk.Label(
-            grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
-            wraplength=430, justify="left",
-        )
-        self.frame_warn_label.grid(row=6, column=0, columnspan=6, sticky="w", pady=(2, 0))
-
-        ttk.Label(grp, text="斜撑离地").grid(row=7, column=0, sticky="w", pady=2)
+        ttk.Label(grp, text="斜撑离地").grid(row=6, column=0, sticky="w", pady=2)
         self.vars["brace_ground"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5, justify="right")
-        e.grid(row=7, column=1, sticky="w", padx=(4, 2))
+        e.grid(row=6, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="檩条外伸").grid(row=7, column=3, sticky="w", pady=2)
+        ttk.Label(grp, text="檩条外伸").grid(row=6, column=3, sticky="w", pady=2)
         self.vars["purlin_extension"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
-        e.grid(row=7, column=4, sticky="w", padx=(4, 2))
+        e.grid(row=6, column=4, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=7, column=5, sticky="w")
+        ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
-        ttk.Label(grp, text="檩条悬挑").grid(row=8, column=0, sticky="w", pady=2)
+        ttk.Label(grp, text="檩条悬挑").grid(row=7, column=0, sticky="w", pady=2)
         self.overhang_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.overhang_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
+        self.overhang_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="斜梁长度").grid(row=8, column=0, sticky="w", pady=(2, 0))
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.beam_len_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
 
-        self.overhang_warn_label = ttk.Label(
-            grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
-            wraplength=430, justify="left",
-        )
-        self.overhang_warn_label.grid(row=9, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="檩条总长").grid(row=9, column=0, sticky="w", pady=(2, 0))
+        self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.purlin_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="斜梁长度").grid(row=10, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.beam_len_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="立柱高度").grid(row=10, column=0, sticky="w", pady=(2, 0))
+        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.col_h_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=10, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="檩条总长").grid(row=11, column=0, sticky="w", pady=(2, 0))
-        self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.purlin_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
-
-        ttk.Label(grp, text="立柱高度").grid(row=12, column=0, sticky="w", pady=(2, 0))
-        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.col_h_entry.grid(row=12, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=12, column=2, sticky="w", padx=(0, 6))
-
-        ttk.Label(grp, text="前斜撑长").grid(row=13, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="前斜撑长").grid(row=11, column=0, sticky="w", pady=(2, 0))
         self.front_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.front_brace_len_entry.grid(row=13, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=13, column=2, sticky="w", padx=(0, 6))
-        ttk.Label(grp, text="后斜撑长").grid(row=13, column=3, sticky="w", pady=(2, 0))
+        self.front_brace_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="后斜撑长").grid(row=11, column=3, sticky="w", pady=(2, 0))
         self.rear_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.rear_brace_len_entry.grid(row=13, column=4, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=13, column=5, sticky="w")
+        self.rear_brace_len_entry.grid(row=11, column=4, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=11, column=5, sticky="w")
 
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
         grp.columnconfigure(5, weight=1)
@@ -575,34 +575,34 @@ class PvSupportApp:
         self.prov_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_prov"],
             values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
-            state="readonly", width=5,
+            state="readonly", width=6,
         )
-        self.prov_cb.grid(row=1, column=0, sticky="w", padx=(0, 4))
+        self.prov_cb.grid(row=1, column=0, sticky="w", padx=(0, 2))
         self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
-        ttk.Label(grp, text="省").grid(row=1, column=1, sticky="w", pady=2, padx=(0, 8))
+        ttk.Label(grp, text="省").grid(row=1, column=1, sticky="w", pady=2, padx=(0, 3))
 
         self.vars["city_name"] = tk.StringVar()
         self.city_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_name"], state="readonly", width=9,
+            grp, textvariable=self.vars["city_name"], state="readonly", width=7,
         )
-        self.city_cb.grid(row=1, column=2, sticky="w", padx=(0, 4))
+        self.city_cb.grid(row=1, column=2, sticky="w", padx=(0, 2))
         self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
-        ttk.Label(grp, text="市").grid(row=1, column=3, sticky="w", pady=2, padx=(0, 8))
+        ttk.Label(grp, text="市").grid(row=1, column=3, sticky="w", pady=2, padx=(0, 3))
 
         self.vars["city_district"] = tk.StringVar()
         self.district_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_district"], state="disabled", width=10,
+            grp, textvariable=self.vars["city_district"], state="disabled", width=8,
         )
-        self.district_cb.grid(row=1, column=4, sticky="w", padx=(0, 4))
+        self.district_cb.grid(row=1, column=4, sticky="w", padx=(0, 2))
         self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
-        ttk.Label(grp, text="区县").grid(row=1, column=5, sticky="w", pady=2, padx=(0, 8))
+        ttk.Label(grp, text="区县").grid(row=1, column=5, sticky="w", pady=2, padx=(0, 3))
 
-        ttk.Label(grp, text="抗震设防").grid(row=1, column=6, sticky="w", pady=2)
+        ttk.Label(grp, text="抗震设防").grid(row=1, column=6, sticky="w", pady=2, padx=(0, 3))
         self.vars["seismic"] = tk.StringVar()
         ttk.Combobox(
             grp, textvariable=self.vars["seismic"],
-            values=SEISMIC_OPTIONS, state="readonly", width=9,
-        ).grid(row=1, column=7, sticky="w", padx=(2, 8))
+            values=SEISMIC_OPTIONS, state="readonly", width=8,
+        ).grid(row=1, column=7, sticky="w", padx=(0, 2))
 
         self.city_result_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
@@ -890,26 +890,18 @@ class PvSupportApp:
                 entry.delete(0, "end")
                 entry.insert(0, f"{val:.0f}")
                 entry.configure(state="disabled")
+            warns = []
             if overhang < 0:
-                self.overhang_warn_label.config(
-                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：品跨（品数−1）×柱距超出"
-                         f"檩条总长，请减小柱距或品数"
-                )
+                warns.append(f"檩条悬挑为负（{overhang:.0f} mm）：品跨（品数−1）×柱距超出"
+                             f"檩条总长，请减小柱距或品数")
             elif overhang > 800:
-                self.overhang_warn_label.config(
-                    text=f"⚠ 檩条悬挑 {overhang:.0f} mm ＞ 800 mm：柱距或品数过少，"
-                         f"请增大柱距或品数"
-                )
-            else:
-                self.overhang_warn_label.config(text="")
+                warns.append(f"檩条悬挑 {overhang:.0f} mm ＞ 800 mm：柱距或品数过少，"
+                             f"请增大柱距或品数")
             frames_len = (frames - 1) * bay
             if frames_len > total_length:
-                self.frame_warn_label.config(
-                    text=f"⚠ 品跨（品数−1）×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
-                         f"{total_length:.0f} mm，请减小榀数或柱距"
-                )
-            else:
-                self.frame_warn_label.config(text="")
+                warns.append(f"品跨（品数−1）×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
+                             f"{total_length:.0f} mm，请减小榀数或柱距")
+            self._pending_warnings = warns
             self.draw_profile()
             self.draw_viewer()
         except (ValueError, tk.TclError):
@@ -931,8 +923,7 @@ class PvSupportApp:
                 entry.delete(0, "end")
                 entry.insert(0, "")
                 entry.configure(state="disabled")
-            self.overhang_warn_label.config(text="")
-            self.frame_warn_label.config(text="")
+            self._pending_warnings = []
 
     # ------------------------------------------------------------ 几何辅助
     def _profile_geometry(self):
@@ -1361,12 +1352,23 @@ class PvSupportApp:
         self.update_calc()
 
     # ------------------------------------------------------------ 按钮动作
+    def _check_warnings(self):
+        """参数有工程逻辑警告时弹窗提示（不阻断操作）。"""
+        warns = getattr(self, "_pending_warnings", None) or []
+        if not warns:
+            return
+        messagebox.showwarning(
+            "参数提醒",
+            "以下参数可能存在工程逻辑问题：\n\n" + "\n".join("• " + w for w in warns),
+        )
+
     def on_refresh(self):
         try:
             params = self.collect_params()
         except ValueError as exc:
             messagebox.showwarning("参数有误", str(exc))
             return
+        self._check_warnings()
         print(json.dumps(params, ensure_ascii=False, indent=2))
         self.draw_profile()
         self.draw_viewer()
@@ -1378,6 +1380,7 @@ class PvSupportApp:
         except ValueError as exc:
             messagebox.showwarning("参数有误", str(exc))
             return
+        self._check_warnings()
         path = filedialog.asksaveasfilename(
             title="导出 DXF 线模", defaultextension=".dxf",
             filetypes=[("DXF 文件", "*.dxf")], initialfile="光伏支架线模.dxf",
@@ -1400,6 +1403,7 @@ class PvSupportApp:
         except ValueError as exc:
             messagebox.showwarning("参数有误", str(exc))
             return
+        self._check_warnings()
         path = filedialog.asksaveasfilename(
             title="导出 3D3S 模型", defaultextension=".3D3S",
             filetypes=[("3D3S 文本模型", "*.3D3S"), ("3D3S Excel 导入", "*.xlsx")],
@@ -1427,6 +1431,7 @@ class PvSupportApp:
         except ValueError as exc:
             messagebox.showwarning("参数有误", str(exc))
             return
+        self._check_warnings()
         path = filedialog.asksaveasfilename(
             title="导出 SAP2000 .s2k", defaultextension=".s2k",
             filetypes=[("SAP2000 文件", "*.s2k")], initialfile="光伏支架_SAP2000.s2k",
