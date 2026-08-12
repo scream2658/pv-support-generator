@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.26 — 界面骨架（MVP M1，2026-08-12 第二十九版）
+光伏支架线模生成器 V1.2.28 — 界面骨架（MVP M1，2026-08-12 第三十一版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.26 改动（3D3S 截面库精确数据接入）：
-    1. 新增 pv_3d3s_sections.py：3D3S"冷弯卷边槽钢"库导出数据
-       （30 个型号，A/I1/I2/Iw/It/e0 精确值）；
-    2. C型钢型号与属性改用 3D3S 数据（C140X50X20X2.5 校验与 3D3S 完全一致）；
-    3. C型钢在 3D3S 中对应类型名修正为【冷弯卷边槽钢】；
-    4. 默认斜梁/檩条改为 3D3S 库内型号（C140X50X20X2.5 / C100X50X15X2.5）。
+V1.2.28 改动（方位角按工作模型实测校准）：
+    1. 绕1轴转角改为 123.3D3S 工作模型实测值：斜梁 0°、檩条 0°、
+       立柱 90°、斜撑 90°；K 节点改为模型外上方一点（同样例做法）；
+    2. Q355B 材料钢号 Q345→Q355（消除导入警告1）；
+    3. 槽8 不在 3D3S 库导致"参数错误"警告（0错误不阻塞，待槽钢库名）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -26,6 +25,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from pv_excel import write_3d3s_excel
 from pv_geometry import write_dxf
+from pv_3d3s_text import write_3d3s_text
 from pv_sections import SECTIONS as SECTION_LIB
 
 
@@ -213,7 +213,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.26")
+        root.title("光伏支架线模生成器 V1.2.28")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -231,7 +231,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.26：C型钢采用3D3S库精确属性（30型号），类型名冷弯卷边槽钢")
+        self.set_status("就绪 V1.2.28：方位角按工作模型实测校准（斜梁/檩条0°，立柱/斜撑90°）")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1398,18 +1398,24 @@ class PvSupportApp:
             messagebox.showwarning("参数有误", str(exc))
             return
         path = filedialog.asksaveasfilename(
-            title="导出 3D3S Excel 导入文件", defaultextension=".xlsx",
-            filetypes=[("Excel 文件", "*.xlsx")], initialfile="光伏支架_3D3S导入.xlsx",
+            title="导出 3D3S 模型", defaultextension=".3D3S",
+            filetypes=[("3D3S 文本模型", "*.3D3S"), ("3D3S Excel 导入", "*.xlsx")],
+            initialfile="光伏支架_3D3S.3D3S",
         )
         if not path:
             return
         try:
-            info = write_3d3s_excel(params, path)
+            if path.lower().endswith(".xlsx"):
+                info = write_3d3s_excel(params, path)
+                label = "3D3S Excel"
+            else:
+                info = write_3d3s_text(params, path)
+                label = "3D3S 文本"
         except Exception as exc:
             messagebox.showerror("导出失败", str(exc))
             return
         self.set_status(
-            f"3D3S Excel 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
+            f"{label} 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
         )
 
     def on_export_sap(self):
