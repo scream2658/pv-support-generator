@@ -1,0 +1,336 @@
+TABLE:  "PROGRAM CONTROL"
+   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"   SteelCode="Chinese 2018"
+
+TABLE:  "ACTIVE DEGREES OF FREEDOM"
+   UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes
+
+TABLE:  "ANALYSIS OPTIONS"
+   Solver=Advanced   SolverProc=Auto   Force32Bit=No
+
+TABLE:  "COORDINATE SYSTEMS"
+   Name=GLOBAL   Type=Cartesian   X=0   Y=0   Z=0   AboutZ=0   AboutY=0   AboutX=0
+
+TABLE:  "MATERIAL PROPERTIES 01 - GENERAL"
+   Material=Q235   Type=Steel   Grade=Q235   SymType=Isotropic   TempDepend=No
+   Material=Q355   Type=Steel   Grade=Q355   SymType=Isotropic   TempDepend=No
+
+TABLE:  "MATERIAL PROPERTIES 02 - BASIC MECHANICAL PROPERTIES"
+   Material=Q235   UnitWeight=7.7E-05   UnitMass=7.85E-09   E1=206000   G12=79230.76923076923   U12=0.3   A1=1.2E-05
+   Material=Q355   UnitWeight=7.7E-05   UnitMass=7.85E-09   E1=206000   G12=79230.76923076923   U12=0.3   A1=1.2E-05
+
+TABLE:  "MATERIAL PROPERTIES 03A - STEEL DATA"
+   Material=Q235   Fy=235   Fu=370   EffFy=260   EffFu=410   SSCurveOpt=Simple   SSHysType=Kinematic
+   Material=Q355   Fy=355   Fu=470   EffFy=390   EffFu=520   SSCurveOpt=Simple   SSHysType=Kinematic
+
+TABLE:  "FRAME SECTION PROPERTIES 01 - GENERAL"
+SectionName=Á¢Öù-²Û8   Material=Q235   Shape=Channel   t3=80   t2=43   tw=5   Radius=0   LipDepth=0   Area=1024.8   TorsConst=6916.67   I33=1.013e+06   I22=166000   I23=0   AS2=0   AS3=0   S33Top=25300   S33Bot=25300   S22Left=7800   S22Right=7800   Z33=0   Z22=0   R33=31.4402   R22=12.7272   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+SectionName=Ð±Áº-C140X50X20X2.5   Material=Q355   Shape=C   t3=140   t2=50   tw=2.5   Radius=0   LipDepth=0   Area=648   TorsConst=1458.33   I33=1.8678e+06   I22=221100   I23=0   AS2=0   AS3=0   S33Top=26682.9   S33Bot=26682.9   S22Left=8844   S22Right=8844   Z33=0   Z22=0   R33=53.6881   R22=18.4717   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+SectionName=Ð±³Å-L50¡Á5   Material=Q235   Shape=Angle   t3=50   t2=5   tw=5   Radius=0   LipDepth=0   Area=475   TorsConst=3958.33   I33=112503   I22=112503   I23=0   AS2=0   AS3=0   S33Top=3155.06   S33Bot=3155.06   S22Left=3155.06   S22Right=3155.06   Z33=0   Z22=0   R33=15.3899   R22=15.3899   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+SectionName=éÝÌõ-C100X50X15X2.5   Material=Q235   Shape=C   t3=100   t2=50   tw=2.5   Radius=0   LipDepth=0   Area=523   TorsConst=1197.92   I33=813400   I22=171900   I23=0   AS2=0   AS3=0   S33Top=16268   S33Bot=16268   S22Left=6876   S22Right=6876   Z33=0   Z22=0   R33=39.4368   R22=18.1296   CGOffset3=0   CGOffset2=0   EccV2=0   EccV3=0   Cw=0   IncludeSCAn=No   ConcCol=No   ConcBeam=No   Color=Default   TotalWt=0   TotalMass=0   FromFile=No   AMod=1   A2Mod=1   A3Mod=1   JMod=1   I2Mod=1   I3Mod=1   MMod=1   WMod=1
+
+TABLE:  "JOINT COORDINATES"
+   Joint=1   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-8000.000   Z=0.000   SpecialJt=Yes
+   Joint=2   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-8000.000   Z=1534.040   SpecialJt=Yes
+   Joint=3   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=-8000.000   Z=850.000   SpecialJt=Yes
+   Joint=4   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=-8000.000   Z=2218.081   SpecialJt=Yes
+   Joint=5   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-8000.000   Z=300.000   SpecialJt=Yes
+   Joint=6   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=-8000.000   Z=969.707   SpecialJt=Yes
+   Joint=7   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=-8000.000   Z=2098.374   SpecialJt=Yes
+   Joint=8   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-6000.000   Z=0.000   SpecialJt=Yes
+   Joint=9   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-6000.000   Z=1534.040   SpecialJt=Yes
+   Joint=10   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=-6000.000   Z=850.000   SpecialJt=Yes
+   Joint=11   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=-6000.000   Z=2218.081   SpecialJt=Yes
+   Joint=12   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-6000.000   Z=300.000   SpecialJt=Yes
+   Joint=13   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=-6000.000   Z=969.707   SpecialJt=Yes
+   Joint=14   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=-6000.000   Z=2098.374   SpecialJt=Yes
+   Joint=15   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-4000.000   Z=0.000   SpecialJt=Yes
+   Joint=16   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-4000.000   Z=1534.040   SpecialJt=Yes
+   Joint=17   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=-4000.000   Z=850.000   SpecialJt=Yes
+   Joint=18   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=-4000.000   Z=2218.081   SpecialJt=Yes
+   Joint=19   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-4000.000   Z=300.000   SpecialJt=Yes
+   Joint=20   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=-4000.000   Z=969.707   SpecialJt=Yes
+   Joint=21   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=-4000.000   Z=2098.374   SpecialJt=Yes
+   Joint=22   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-2000.000   Z=0.000   SpecialJt=Yes
+   Joint=23   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-2000.000   Z=1534.040   SpecialJt=Yes
+   Joint=24   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=-2000.000   Z=850.000   SpecialJt=Yes
+   Joint=25   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=-2000.000   Z=2218.081   SpecialJt=Yes
+   Joint=26   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=-2000.000   Z=300.000   SpecialJt=Yes
+   Joint=27   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=-2000.000   Z=969.707   SpecialJt=Yes
+   Joint=28   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=-2000.000   Z=2098.374   SpecialJt=Yes
+   Joint=29   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=0.000   Z=0.000   SpecialJt=Yes
+   Joint=30   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=0.000   Z=1534.040   SpecialJt=Yes
+   Joint=31   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=0.000   Z=850.000   SpecialJt=Yes
+   Joint=32   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=0.000   Z=2218.081   SpecialJt=Yes
+   Joint=33   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=0.000   Z=300.000   SpecialJt=Yes
+   Joint=34   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=0.000   Z=969.707   SpecialJt=Yes
+   Joint=35   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=0.000   Z=2098.374   SpecialJt=Yes
+   Joint=36   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=2000.000   Z=0.000   SpecialJt=Yes
+   Joint=37   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=2000.000   Z=1534.040   SpecialJt=Yes
+   Joint=38   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=2000.000   Z=850.000   SpecialJt=Yes
+   Joint=39   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=2000.000   Z=2218.081   SpecialJt=Yes
+   Joint=40   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=2000.000   Z=300.000   SpecialJt=Yes
+   Joint=41   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=2000.000   Z=969.707   SpecialJt=Yes
+   Joint=42   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=2000.000   Z=2098.374   SpecialJt=Yes
+   Joint=43   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=4000.000   Z=0.000   SpecialJt=Yes
+   Joint=44   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=4000.000   Z=1534.040   SpecialJt=Yes
+   Joint=45   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=4000.000   Z=850.000   SpecialJt=Yes
+   Joint=46   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=4000.000   Z=2218.081   SpecialJt=Yes
+   Joint=47   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=4000.000   Z=300.000   SpecialJt=Yes
+   Joint=48   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=4000.000   Z=969.707   SpecialJt=Yes
+   Joint=49   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=4000.000   Z=2098.374   SpecialJt=Yes
+   Joint=50   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=6000.000   Z=0.000   SpecialJt=Yes
+   Joint=51   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=6000.000   Z=1534.040   SpecialJt=Yes
+   Joint=52   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=6000.000   Z=850.000   SpecialJt=Yes
+   Joint=53   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=6000.000   Z=2218.081   SpecialJt=Yes
+   Joint=54   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=6000.000   Z=300.000   SpecialJt=Yes
+   Joint=55   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=6000.000   Z=969.707   SpecialJt=Yes
+   Joint=56   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=6000.000   Z=2098.374   SpecialJt=Yes
+   Joint=57   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=8000.000   Z=0.000   SpecialJt=Yes
+   Joint=58   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=8000.000   Z=1534.040   SpecialJt=Yes
+   Joint=59   CoordSys=GLOBAL   CoordType=Cartesian   XorR=0.000   Y=8000.000   Z=850.000   SpecialJt=Yes
+   Joint=60   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3758.770   Y=8000.000   Z=2218.081   SpecialJt=Yes
+   Joint=61   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1879.385   Y=8000.000   Z=300.000   SpecialJt=Yes
+   Joint=62   CoordSys=GLOBAL   CoordType=Cartesian   XorR=328.892   Y=8000.000   Z=969.707   SpecialJt=Yes
+   Joint=63   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3429.878   Y=8000.000   Z=2098.374   SpecialJt=Yes
+   Joint=64   CoordSys=GLOBAL   CoordType=Cartesian   XorR=140.954   Y=-8795.000   Z=901.303   SpecialJt=Yes
+   Joint=65   CoordSys=GLOBAL   CoordType=Cartesian   XorR=140.954   Y=8795.000   Z=901.303   SpecialJt=Yes
+   Joint=66   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1456.524   Y=-8795.000   Z=1380.131   SpecialJt=Yes
+   Joint=67   CoordSys=GLOBAL   CoordType=Cartesian   XorR=1456.524   Y=8795.000   Z=1380.131   SpecialJt=Yes
+   Joint=68   CoordSys=GLOBAL   CoordType=Cartesian   XorR=2300.368   Y=-8795.000   Z=1687.265   SpecialJt=Yes
+   Joint=69   CoordSys=GLOBAL   CoordType=Cartesian   XorR=2300.368   Y=8795.000   Z=1687.265   SpecialJt=Yes
+   Joint=70   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3615.937   Y=-8795.000   Z=2166.094   SpecialJt=Yes
+   Joint=71   CoordSys=GLOBAL   CoordType=Cartesian   XorR=3615.937   Y=8795.000   Z=2166.094   SpecialJt=Yes
+
+TABLE:  "CONNECTIVITY - FRAME"
+   Frame=1   JointI=1   JointJ=2   IsCurved=No
+   Frame=2   JointI=3   JointJ=4   IsCurved=No
+   Frame=3   JointI=5   JointJ=6   IsCurved=No
+   Frame=4   JointI=5   JointJ=7   IsCurved=No
+   Frame=5   JointI=8   JointJ=9   IsCurved=No
+   Frame=6   JointI=10   JointJ=11   IsCurved=No
+   Frame=7   JointI=12   JointJ=13   IsCurved=No
+   Frame=8   JointI=12   JointJ=14   IsCurved=No
+   Frame=9   JointI=15   JointJ=16   IsCurved=No
+   Frame=10   JointI=17   JointJ=18   IsCurved=No
+   Frame=11   JointI=19   JointJ=20   IsCurved=No
+   Frame=12   JointI=19   JointJ=21   IsCurved=No
+   Frame=13   JointI=22   JointJ=23   IsCurved=No
+   Frame=14   JointI=24   JointJ=25   IsCurved=No
+   Frame=15   JointI=26   JointJ=27   IsCurved=No
+   Frame=16   JointI=26   JointJ=28   IsCurved=No
+   Frame=17   JointI=29   JointJ=30   IsCurved=No
+   Frame=18   JointI=31   JointJ=32   IsCurved=No
+   Frame=19   JointI=33   JointJ=34   IsCurved=No
+   Frame=20   JointI=33   JointJ=35   IsCurved=No
+   Frame=21   JointI=36   JointJ=37   IsCurved=No
+   Frame=22   JointI=38   JointJ=39   IsCurved=No
+   Frame=23   JointI=40   JointJ=41   IsCurved=No
+   Frame=24   JointI=40   JointJ=42   IsCurved=No
+   Frame=25   JointI=43   JointJ=44   IsCurved=No
+   Frame=26   JointI=45   JointJ=46   IsCurved=No
+   Frame=27   JointI=47   JointJ=48   IsCurved=No
+   Frame=28   JointI=47   JointJ=49   IsCurved=No
+   Frame=29   JointI=50   JointJ=51   IsCurved=No
+   Frame=30   JointI=52   JointJ=53   IsCurved=No
+   Frame=31   JointI=54   JointJ=55   IsCurved=No
+   Frame=32   JointI=54   JointJ=56   IsCurved=No
+   Frame=33   JointI=57   JointJ=58   IsCurved=No
+   Frame=34   JointI=59   JointJ=60   IsCurved=No
+   Frame=35   JointI=61   JointJ=62   IsCurved=No
+   Frame=36   JointI=61   JointJ=63   IsCurved=No
+   Frame=37   JointI=64   JointJ=65   IsCurved=No
+   Frame=38   JointI=66   JointJ=67   IsCurved=No
+   Frame=39   JointI=68   JointJ=69   IsCurved=No
+   Frame=40   JointI=70   JointJ=71   IsCurved=No
+
+TABLE:  "FRAME SECTION ASSIGNMENTS"
+   Frame=1   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=2   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=3   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=4   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=5   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=6   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=7   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=8   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=9   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=10   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=11   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=12   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=13   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=14   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=15   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=16   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=17   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=18   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=19   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=20   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=21   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=22   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=23   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=24   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=25   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=26   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=27   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=28   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=29   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=30   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=31   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=32   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=33   SectionType=Frame   AutoSelect=No   AnalSect=Á¢Öù-²Û8   DesignSect=Á¢Öù-²Û8   MatProp=Q235
+   Frame=34   SectionType=Frame   AutoSelect=No   AnalSect=Ð±Áº-C140X50X20X2.5   DesignSect=Ð±Áº-C140X50X20X2.5   MatProp=Q355
+   Frame=35   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=36   SectionType=Frame   AutoSelect=No   AnalSect=Ð±³Å-L50¡Á5   DesignSect=Ð±³Å-L50¡Á5   MatProp=Q235
+   Frame=37   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
+   Frame=38   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
+   Frame=39   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
+   Frame=40   SectionType=Frame   AutoSelect=No   AnalSect=éÝÌõ-C100X50X15X2.5   DesignSect=éÝÌõ-C100X50X15X2.5   MatProp=Q235
+
+TABLE:  "JOINT RESTRAINT ASSIGNMENTS"
+   Joint=1   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=8   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=15   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=22   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=29   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=36   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=43   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=50   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+   Joint=57   U1=Yes   U2=Yes   U3=Yes   R1=Yes   R2=Yes   R3=Yes
+
+TABLE:  "FRAME LOCAL AXES ASSIGNMENTS 1 - TYPICAL"
+   Frame=1   Angle=180   AdvanceAxes=No
+   Frame=2   Angle=0   AdvanceAxes=No
+   Frame=3   Angle=90   AdvanceAxes=No
+   Frame=4   Angle=90   AdvanceAxes=No
+   Frame=5   Angle=180   AdvanceAxes=No
+   Frame=6   Angle=0   AdvanceAxes=No
+   Frame=7   Angle=90   AdvanceAxes=No
+   Frame=8   Angle=90   AdvanceAxes=No
+   Frame=9   Angle=180   AdvanceAxes=No
+   Frame=10   Angle=0   AdvanceAxes=No
+   Frame=11   Angle=90   AdvanceAxes=No
+   Frame=12   Angle=90   AdvanceAxes=No
+   Frame=13   Angle=180   AdvanceAxes=No
+   Frame=14   Angle=0   AdvanceAxes=No
+   Frame=15   Angle=90   AdvanceAxes=No
+   Frame=16   Angle=90   AdvanceAxes=No
+   Frame=17   Angle=180   AdvanceAxes=No
+   Frame=18   Angle=0   AdvanceAxes=No
+   Frame=19   Angle=90   AdvanceAxes=No
+   Frame=20   Angle=90   AdvanceAxes=No
+   Frame=21   Angle=180   AdvanceAxes=No
+   Frame=22   Angle=0   AdvanceAxes=No
+   Frame=23   Angle=90   AdvanceAxes=No
+   Frame=24   Angle=90   AdvanceAxes=No
+   Frame=25   Angle=180   AdvanceAxes=No
+   Frame=26   Angle=0   AdvanceAxes=No
+   Frame=27   Angle=90   AdvanceAxes=No
+   Frame=28   Angle=90   AdvanceAxes=No
+   Frame=29   Angle=180   AdvanceAxes=No
+   Frame=30   Angle=0   AdvanceAxes=No
+   Frame=31   Angle=90   AdvanceAxes=No
+   Frame=32   Angle=90   AdvanceAxes=No
+   Frame=33   Angle=180   AdvanceAxes=No
+   Frame=34   Angle=0   AdvanceAxes=No
+   Frame=35   Angle=90   AdvanceAxes=No
+   Frame=36   Angle=90   AdvanceAxes=No
+   Frame=37   Angle=70   AdvanceAxes=No
+   Frame=38   Angle=70   AdvanceAxes=No
+   Frame=39   Angle=70   AdvanceAxes=No
+   Frame=40   Angle=70   AdvanceAxes=No
+
+TABLE:  "LOAD PATTERN DEFINITIONS"
+   LoadPat=DEAD   DesignType=Dead   SelfWtMult=1
+   LoadPat=snow   DesignType=Snow   SelfWtMult=0
+   LoadPat=wp     DesignType=Wind   SelfWtMult=0
+   LoadPat=wz     DesignType=Wind   SelfWtMult=0
+
+TABLE:  "LOAD CASE DEFINITIONS"
+   Case=DEAD   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
+   Case=snow   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
+   Case=wp   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
+   Case=wz   Type="Linear Static"   InitialCond="Zero Initial Conditions - Start from Unstressed State"   RunCase=Yes
+
+TABLE:  "CASE - STATIC 1 - LOAD ASSIGNMENTS"
+   Case=DEAD   LoadType=Load   LoadName=DEAD   LoadSF=1
+   Case=snow   LoadType=Load   LoadName=snow   LoadSF=1
+   Case=wp   LoadType=Load   LoadName=wp   LoadSF=1
+   Case=wz   LoadType=Load   LoadName=wz   LoadSF=1
+
+TABLE:  "FRAME LOADS - DISTRIBUTED"
+   Frame=37   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2215   FOverLB=0.2215
+   Frame=37   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2800   FOverLB=0.2800
+   Frame=37   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+   Frame=37   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+   Frame=38   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.1818   FOverLB=0.1818
+   Frame=38   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2298   FOverLB=0.2298
+   Frame=38   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=38   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=39   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.1818   FOverLB=0.1818
+   Frame=39   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2298   FOverLB=0.2298
+   Frame=39   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=39   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.6326   FOverLB=-0.6326
+   Frame=40   LoadPat=DEAD   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2215   FOverLB=0.2215
+   Frame=40   LoadPat=snow   CoordSys=GLOBAL   Type=Force   Dir=Gravity   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=0.2800   FOverLB=0.2800
+   Frame=40   LoadPat=wp   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+   Frame=40   LoadPat=wz   CoordSys=Local   Type=Force   Dir=2   DistType=RelDist   RelDistA=0   RelDistB=1   FOverLA=-0.7708   FOverLB=-0.7708
+
+TABLE:  "COMBINATION DEFINITIONS"
+   ComboName=1.3D+1.5Wz+1.5*0.7Sn   ComboType="Linear Add"   AutoDesign=No   CaseType="Linear Static"   CaseName=DEAD   ScaleFactor=1.3   SteelDesign=None
+   ComboName=1.3D+1.5Wz+1.5*0.7Sn   CaseType="Linear Static"   CaseName=wz   ScaleFactor=1.5
+   ComboName=1.3D+1.5Wz+1.5*0.7Sn   CaseType="Linear Static"   CaseName=snow   ScaleFactor=1.05
+   ComboName=1.3D+1.5Sn+1.5*0.7Wz   CaseType="Linear Static"   CaseName=DEAD   ScaleFactor=1.3
+   ComboName=1.3D+1.5Sn+1.5*0.7Wz   CaseType="Linear Static"   CaseName=snow   ScaleFactor=1.5
+   ComboName=1.3D+1.5Sn+1.5*0.7Wz   CaseType="Linear Static"   CaseName=wz   ScaleFactor=1.05
+   ComboName=1.0D+1.0Wp+1.0*0.7Sn   CaseType="Linear Static"   CaseName=DEAD   ScaleFactor=1
+   ComboName=1.0D+1.0Wp+1.0*0.7Sn   CaseType="Linear Static"   CaseName=wp   ScaleFactor=1
+   ComboName=1.0D+1.0Wp+1.0*0.7Sn   CaseType="Linear Static"   CaseName=snow   ScaleFactor=0.7
+   ComboName=1.0D+1.0Wz   CaseType="Linear Static"   CaseName=DEAD   ScaleFactor=1
+   ComboName=1.0D+1.0Wz   CaseType="Linear Static"   CaseName=wz   ScaleFactor=1
+
+TABLE:  "GROUPS 1 - DEFINITIONS"
+   GroupName=Á¢Öù   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
+   GroupName=Ð±Áº   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
+   GroupName=Ð±³Å   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
+   GroupName=éÝÌõ   Selection=No   SectionCut=No   Steel=No   Concrete=No   Aluminum=No   ColdFormed=No
+
+TABLE:  "GROUPS 2 - ASSIGNMENTS"
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=1
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=2
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=3
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=4
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=5
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=6
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=7
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=8
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=9
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=10
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=11
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=12
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=13
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=14
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=15
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=16
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=17
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=18
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=19
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=20
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=21
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=22
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=23
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=24
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=25
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=26
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=27
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=28
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=29
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=30
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=31
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=32
+   GroupName=Á¢Öù   ObjectType=Frame   ObjectLabel=33
+   GroupName=Ð±Áº   ObjectType=Frame   ObjectLabel=34
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=35
+   GroupName=Ð±³Å   ObjectType=Frame   ObjectLabel=36
+   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=37
+   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=38
+   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=39
+   GroupName=éÝÌõ   ObjectType=Frame   ObjectLabel=40

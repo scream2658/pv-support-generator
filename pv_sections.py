@@ -146,9 +146,13 @@ def _rect_props(rects, rho=7850):
     cx /= A
     cy /= A
     Ixx = Iyy = 0.0
+    J = 0.0
     for (a, xc, yc, w, h) in parts:
         Ixx += w * h ** 3 / 12 + a * (yc - cy) ** 2
         Iyy += h * w ** 3 / 12 + a * (xc - cx) ** 2
+        t = min(w, h)
+        l = max(w, h)
+        J += l * t ** 3 / 3          # 开口截面抗扭常数（薄壁近似）
     I1, I2 = (Ixx, Iyy) if Ixx >= Iyy else (Iyy, Ixx)
     # 抵抗矩：按各轴最远纤维距离（矩形分解近似）
     maxy = max(max(abs(y0 - cy), abs(y1 - cy)) for (x0, y0, x1, y1) in rects)
@@ -156,7 +160,7 @@ def _rect_props(rects, rho=7850):
     W1 = I1 / max(maxx, maxy) if max(maxx, maxy) > 0 else 0
     W2 = I2 / min(maxx, maxy) if min(maxx, maxy) > 0 else 0
     mass = A * rho / 1e6
-    return A, I1, I2, W1, W2, mass
+    return A, I1, I2, W1, W2, mass, J
 
 
 def _channel_rects(h, b, c, t):
@@ -223,6 +227,7 @@ def get_props(spec, model):
     else:
         return None
 
+    J_open = None
     if spec == "C型钢":
         d3 = C_CHANNEL_3D3S.get(model)
         if d3:
@@ -231,12 +236,15 @@ def get_props(spec, model):
             W1 = I1 / (d3["h"] / 2)
             W2 = I2 / (d3["b"] / 2)
             m = A * 7850 / 1e6
+            J = (1.0 / 3.0) * (d3["h"] * d3["t"] ** 3
+                               + 2 * d3["b"] * d3["t"] ** 3
+                               + 2 * d3["c"] * d3["t"] ** 3)
         else:
-            A, I1, I2, W1, W2, m = _rect_props(_channel_rects(*dims))
+            A, I1, I2, W1, W2, m, J = _rect_props(_channel_rects(*dims))
     elif spec == "Z型钢":
-        A, I1, I2, W1, W2, m = _rect_props(_z_rects(*dims))
+        A, I1, I2, W1, W2, m, J = _rect_props(_z_rects(*dims))
     elif spec == "U型钢":
-        A, I1, I2, W1, W2, m = _rect_props(_u_rects(*dims))
+        A, I1, I2, W1, W2, m, J = _rect_props(_u_rects(*dims))
     elif spec == "槽钢":
         gb = CHANNEL_GB.get(dims)
         if not gb:
@@ -246,11 +254,14 @@ def get_props(spec, model):
         I1, I2 = Ix * 1e4, Iy * 1e4
         W1, W2 = Wx * 1e3, Wy * 1e3
         m = A * 7850 / 1e6
+        J = (1.0 / 3.0) * (dims[0] * dims[2] ** 3 + 2 * dims[1] * dims[2] ** 3)
     elif spec == "角钢":
-        A, I1, I2, W1, W2, m = _rect_props(_angle_rects(*dims))
+        A, I1, I2, W1, W2, m, J = _rect_props(_angle_rects(*dims))
     elif spec in ("方钢管", "矩形钢管"):
         h, b, t = dims
-        A, I1, I2, W1, W2, m = _rect_props(_tube_rects(h, b, t))
+        A, I1, I2, W1, W2, m, _j = _rect_props(_tube_rects(h, b, t))
+        # 闭口截面抗扭：J ≈ 2t(h-t)²(b-t)²/(h+b-2t)
+        J = 2 * t * (h - t) ** 2 * (b - t) ** 2 / ((h - t) + (b - t))
     elif spec == "圆钢/圆管":
         if len(dims) == 1:                      # 圆钢
             D = dims[0]
@@ -259,6 +270,7 @@ def get_props(spec, model):
             W = math.pi * D ** 3 / 32
             I1 = I2 = I
             W1 = W2 = W
+            J = 2 * I
         else:                                   # 圆管
             D, t = dims
             Di = D - 2 * t
@@ -267,12 +279,13 @@ def get_props(spec, model):
             W = 2 * I / D
             I1 = I2 = I
             W1 = W2 = W
+            J = 2 * I
         m = A * 7850 / 1e6
     else:
         return None
     return {
         "spec": spec, "model": model,
-        "A": A, "I1": I1, "I2": I2, "W1": W1, "W2": W2,
+        "A": A, "I1": I1, "I2": I2, "W1": W1, "W2": W2, "J": J,
         "mass": m,
     }
 

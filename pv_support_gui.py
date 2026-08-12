@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.33 — 界面骨架（MVP M1，2026-08-12 第三十六版）
+光伏支架线模生成器 V1.2.34 — 界面骨架（MVP M1，2026-08-12 第三十七版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.33 改动（檩条角度定版 70°）：
-    1. 檩条绕1轴转角 160°→70°（160−90，局部轴一致）；
-       4 根檩条 K 节点仍按自身位置设置，严格平行。
+V1.2.34 改动（SAP2000 .s2k 导出）：
+    1. 新增 pv_s2k.py：按 SAP2000 V26 样本格式生成 .s2k
+       （材料 Q235/Q355、截面属性自包含、节点/杆件、支座全固接、
+        局部轴转角、荷载工况 DEAD/snow/wp/wz、檩条分布荷载、
+        光伏规范组合、构件分组）；
+    2. 截面抗扭常数 J 已补入截面库；
+    3. "生成 SAP2000"按钮已接入。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -25,6 +29,7 @@ from pv_excel import write_3d3s_excel
 from pv_geometry import write_dxf
 from pv_3d3s_text import write_3d3s_text
 from pv_sections import SECTIONS as SECTION_LIB
+from pv_s2k import write_s2k
 
 
 # --------------------------------------------------------------------------
@@ -211,7 +216,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.33")
+        root.title("光伏支架线模生成器 V1.2.34")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -229,7 +234,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.33：檩条角度70°定版（160−90），4根严格平行")
+        self.set_status("就绪 V1.2.34：SAP2000 .s2k 导出已接入（含荷载与组合）")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1417,7 +1422,25 @@ class PvSupportApp:
         )
 
     def on_export_sap(self):
-        self.set_status("【生成 SAP2000】M3 进行中：下一步生成 .s2k（含截面/荷载）")
+        try:
+            params = self.collect_params()
+        except ValueError as exc:
+            messagebox.showwarning("参数有误", str(exc))
+            return
+        path = filedialog.asksaveasfilename(
+            title="导出 SAP2000 .s2k", defaultextension=".s2k",
+            filetypes=[("SAP2000 文件", "*.s2k")], initialfile="光伏支架_SAP2000.s2k",
+        )
+        if not path:
+            return
+        try:
+            info = write_s2k(params, path)
+        except Exception as exc:
+            messagebox.showerror("导出失败", str(exc))
+            return
+        self.set_status(
+            f"SAP2000 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
+        )
 
     def save_project(self):
         try:
