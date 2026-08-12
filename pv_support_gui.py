@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.47 — 界面骨架（MVP M1，2026-08-13 第四十九版）
+光伏支架线模生成器 V1.2.48 — 界面骨架（MVP M1，2026-08-13 第五十版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.48 改动（导出失败友好提示）：
+    1. 生成 DXF / 3D3S / SAP2000 三个导出按钮统一错误提示：
+       文件被占用（Permission denied）时明确提示"目标文件可能正被
+       AutoCAD/CAD 打开，请关闭后重试或换文件名/路径保存"；
+    2. 实测案例：桌面同名 DXF 被 CAD 占用导致 Permission denied，
+       3D3S 写不同文件名成功；本次仅改提示文案，导出逻辑未动。
 
 V1.2.47 改动（右 520 定宽）：
     1. 窗口总宽 916（= 左侧 380 + 间距 + 右侧 520）；
@@ -287,7 +294,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.47")
+        root.title("光伏支架线模生成器 V1.2.48")
         root.geometry("916x820")
         root.resizable(False, False)
         try:
@@ -305,7 +312,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.47：左侧 380px，右侧 520px，窗口 916")
+        self.set_status("就绪 V1.2.48：导出被占用时提示关闭 CAD 后重试")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1418,6 +1425,21 @@ class PvSupportApp:
         self.update_calc()
 
     # ------------------------------------------------------------ 按钮动作
+    def _export_error(self, exc):
+        """导出失败统一提示：文件被占用时给出可操作建议。"""
+        msg = str(exc)
+        if isinstance(exc, PermissionError) or "Permission denied" in msg:
+            messagebox.showerror(
+                "导出失败",
+                "没有权限写入该文件。\n\n"
+                "常见原因：目标文件正被其他程序占用（例如同名 DXF 正在 "
+                "AutoCAD/CAD 中打开），或该目录无写入权限。\n\n"
+                "建议：关闭 CAD 中打开的该文件，或换一个文件名/路径保存后重试。\n\n"
+                f"详细信息：{msg}",
+            )
+        else:
+            messagebox.showerror("导出失败", msg)
+
     def _check_warnings(self):
         """参数有工程逻辑警告时弹窗提示（不阻断操作）。"""
         warns = getattr(self, "_pending_warnings", None) or []
@@ -1456,7 +1478,7 @@ class PvSupportApp:
         try:
             model = write_dxf(params, path)
         except Exception as exc:
-            messagebox.showerror("导出失败", str(exc))
+            self._export_error(exc)
             return
         info = model["info"]
         self.set_status(
@@ -1485,7 +1507,7 @@ class PvSupportApp:
                 info = write_3d3s_text(params, path)
                 label = "3D3S 文本"
         except Exception as exc:
-            messagebox.showerror("导出失败", str(exc))
+            self._export_error(exc)
             return
         self.set_status(
             f"{label} 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
@@ -1507,7 +1529,7 @@ class PvSupportApp:
         try:
             info = write_s2k(params, path)
         except Exception as exc:
-            messagebox.showerror("导出失败", str(exc))
+            self._export_error(exc)
             return
         self.set_status(
             f"SAP2000 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
