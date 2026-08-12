@@ -10,7 +10,8 @@
     "W": 1134,
     "T": 35,
     "weight": 28.5,
-    "power": 545
+    "power": 545,
+    "hole_pitch": 1400
   },
   "layout": {
     "rows": 2,
@@ -23,7 +24,6 @@
     "type": "单立柱",
     "bay": 2000,
     "frames": 3,
-    "purlin_interval": 1500,
     "purlin_end_offset": 150,
     "purlin_extension": 150,
     "brace_ground": 300,

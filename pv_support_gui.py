@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.12 — 界面骨架（MVP M1，2026-08-12 第十五版）
+光伏支架线模生成器 V1.2.13 — 界面骨架（MVP M1，2026-08-12 第十六版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.12 改动（按界面标注 + 口述）：
-    1. 省/市/区县标签移到下拉框右侧；
-    2. ④ 3D 预览默认视角调整为"斜梁左高右低、从右前上方看"；
-    3. ② 倾角标注再左移，避免被边缘遮挡；
-    4. 输入框数值输入完成后自动取消选中（焦点离开即取消高亮）；
-    5. ② 新增【檩条悬挑】计算显示：= (檩条总长 - 柱距×榀数)/2；
-    6. ② 单位补齐并统一（倾角度、前后斜撑/端距/柱距 mm、榀数榀），
-       右列单位列弹性拉伸防裁切；斜梁长度 mm 改为正常颜色；
-    7. ② 红色超限提醒上移到柱距/榀数下方，避免被底部遮挡；
-    8. "檩条外伸长度"改回"檩条外伸"（避免界面被拉宽）。
+V1.2.13 改动（檩条排布工程逻辑）：
+    1. 新增【背板孔距】参数（默认 1400mm，组件背板开孔间距）；
+    2. 取消手动"檩条间距"输入，檩条位置自动推导：
+       每行组件两道檩条（距组件底边 0 和 背板孔距），行间加组件间隙；
+       例：2 行组件 → 间距 1400 / 898 / 1400（898 = 组件长 − 背板孔距 + 间隙）；
+    3. 斜梁长度自动计算 = 端距×2 + 檩条总跨度，取整到 10mm
+       （例：150 + 1400 + 898 + 1400 + 150 = 3998 → 4000mm）；
+    4. 2D/3D 预览的檩条位置与斜梁长度同步按此逻辑生成。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -101,12 +99,11 @@ DEFAULT_PARAMS = {
     "project": {"name": "某光伏项目", "unit": "mm/kN"},
     "support_type": "单立柱",
     "module": {"lib": "高科545W", "L": 2278, "W": 1134, "T": 35,
-               "weight": 28.5, "power": 545},
+               "weight": 28.5, "power": 545, "hole_pitch": 1400},
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
     "structure": {"type": "单立柱", "bay": 2000, "frames": 3,
-                  "purlin_interval": 1500, "purlin_end_offset": 150,
-                  "purlin_extension": 150, "brace_ground": 300,
-                  "brace_front": 960, "brace_rear": 1808},
+                  "purlin_end_offset": 150, "purlin_extension": 150,
+                  "brace_ground": 300, "brace_front": 960, "brace_rear": 1808},
     "sections": {
         role: {"spec": spec, "model": model, "material": mat}
         for role, spec, model, mat in MEMBER_ROLES
@@ -212,7 +209,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.12")
+        root.title("光伏支架线模生成器 V1.2.13")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -230,7 +227,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.12：檩条悬挑自动计算；单位补齐；默认视角左高右低；省市区县标签后置")
+        self.set_status("就绪 V1.2.13：背板孔距驱动檩条排布；斜梁长度自动取整4000；檩条间距取消手动")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -314,12 +311,14 @@ class PvSupportApp:
                                      "列数", "layout_cols", "")
         self.calc_entries += pair(4, "组件功率", "module_power", "W",
                                      "组件间隙", "layout_gap", "mm")
+        self.calc_entries += pair(5, "背板孔距", "module_hole_pitch", "mm",
+                                     " ", "", " ")
 
         self.calc_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold"),
             justify="left",
         )
-        self.calc_label.grid(row=5, column=0, columnspan=6, sticky="w", pady=(4, 0))
+        self.calc_label.grid(row=6, column=0, columnspan=6, sticky="w", pady=(4, 0))
 
     # -------------------------------------------------------- ② 支架形式
     def _build_support_group(self, parent):
@@ -362,8 +361,12 @@ class PvSupportApp:
                                      "倾角", "layout_tilt", "度")
         self.calc_entries += pair(3, "前斜撑", "brace_front", "mm",
                                      "后斜撑", "brace_rear", "mm")
-        self.calc_entries += pair(4, "檩条间距", "struct_purlin_interval", "mm",
-                                     "端距", "purlin_end_offset", "mm")
+        ttk.Label(grp, text="端距").grid(row=4, column=0, sticky="w", pady=2)
+        self.vars["purlin_end_offset"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["purlin_end_offset"], width=5, justify="right")
+        e.grid(row=4, column=1, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 6))
 
         ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
@@ -848,16 +851,18 @@ class PvSupportApp:
     # ------------------------------------------------------------ 几何辅助
     def _profile_geometry(self):
         try:
-            rows = int(float(self.vars["layout_rows"].get()))
             end_offset = float(self.vars["purlin_end_offset"].get())
-            interval = float(self.vars["struct_purlin_interval"].get())
             tilt = float(self.vars["layout_tilt"].get())
             ground = float(self.vars["layout_ground_gap"].get())
         except (ValueError, tk.TclError):
             return None
-        # 斜梁长度 = 端距×2 + (檩条数-1)×檩条间距（檩条数 = 行数×2）
-        n = max(2, rows * 2)
-        slope = 2 * end_offset + (n - 1) * interval
+        # 斜梁长度 = 檩条总跨度 + 端距×2（檩条位置由组件背板孔距推导），取整到10mm
+        positions = self._purlin_positions()
+        if positions:
+            slope = (positions[-1] - positions[0]) + 2 * end_offset
+        else:
+            slope = 2 * end_offset
+        slope = max(1.0, round(slope / 10.0) * 10.0)
         a = math.radians(tilt)
         span = slope * math.cos(a)
         rise = slope * math.sin(a)
@@ -865,16 +870,23 @@ class PvSupportApp:
             return None
         return slope, span, rise, ground, a
 
-    def _purlin_positions(self, slope):
-        """檩条位置：端距起按固定间距排列，根数 = 行数×2。"""
+    def _purlin_positions(self):
+        """檩条位置：按组件背板开孔排布。
+        每行组件两道檩条（距组件底边 0 与 背板孔距处），行间加组件间隙。"""
         try:
             rows = int(float(self.vars["layout_rows"].get()))
+            L = float(self.vars["module_L"].get())
+            gap = float(self.vars["layout_gap"].get())
+            pitch = float(self.vars["module_hole_pitch"].get())
             end_offset = float(self.vars["purlin_end_offset"].get())
-            interval = float(self.vars["struct_purlin_interval"].get())
         except (ValueError, tk.TclError):
-            rows, end_offset, interval = 2, 150, 1500
-        n = max(2, rows * 2)
-        return [end_offset + i * interval for i in range(n)]
+            rows, L, gap, pitch, end_offset = 2, 2278, 20, 1400, 150
+        pos = set()
+        for i in range(max(1, rows)):
+            base = end_offset + i * (L + gap)
+            pos.add(base)
+            pos.add(base + pitch)
+        return sorted(pos)
 
     # ------------------------------------------------------------ 侧面示意
     def draw_profile(self):
@@ -946,7 +958,7 @@ class PvSupportApp:
                 rx2, ry2 = P(t_r * math.cos(a), ground + t_r * math.sin(a))
                 c.create_line(*P(mid_x, brace_ground), rx2, ry2, fill=MEMBER_COLORS["斜撑"], width=2)
 
-        for t in self._purlin_positions(slope):
+        for t in self._purlin_positions():
             px, py = P(t * math.cos(a), ground + t * math.sin(a))
             nx, ny = -math.sin(a), math.cos(a)
             tick = max(8, scale * 80)
@@ -1038,7 +1050,7 @@ class PvSupportApp:
 
         # 檩条：横跨所有品
         y0, y1 = frame_ys[0], frame_ys[-1]
-        for t in self._purlin_positions(slope):
+        for t in self._purlin_positions():
             p = beam_pt(t, 0)
             lines.append(((p[0], y0, p[2]), (p[0], y1, p[2]), MEMBER_COLORS["檩条"]))
 
@@ -1121,6 +1133,7 @@ class PvSupportApp:
                 "lib": self.vars["module_lib"].get(),
                 "L": f("module_L"), "W": f("module_W"), "T": f("module_T"),
                 "weight": f("module_weight"), "power": f("module_power"),
+                "hole_pitch": f("module_hole_pitch"),
             },
             "layout": {
                 "rows": i("layout_rows"), "cols": i("layout_cols"),
@@ -1130,7 +1143,6 @@ class PvSupportApp:
             "structure": {
                 "type": self.vars["support_type"].get(),
                 "bay": f("struct_bay"), "frames": i("struct_frames"),
-                "purlin_interval": f("struct_purlin_interval"),
                 "purlin_end_offset": f("purlin_end_offset"),
                 "purlin_extension": f("purlin_extension"),
                 "brace_ground": f("brace_ground"),
@@ -1183,6 +1195,7 @@ class PvSupportApp:
         setv("module_T", mod.get("T", 35))
         setv("module_weight", mod.get("weight", 28.5))
         setv("module_power", mod.get("power", 545))
+        setv("module_hole_pitch", mod.get("hole_pitch", 1400))
         lay = params.get("layout", {})
         setv("layout_rows", lay.get("rows", 2))
         setv("layout_cols", lay.get("cols", 15))
@@ -1193,7 +1206,6 @@ class PvSupportApp:
         setv("struct_bay", st.get("bay", 2000))
         # 品数（兼容旧字段 array_rows）
         setv("struct_frames", st.get("frames", st.get("array_rows", 3)))
-        setv("struct_purlin_interval", st.get("purlin_interval", 1500))
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
         setv("purlin_extension", st.get("purlin_extension", 150))
         setv("brace_ground", st.get("brace_ground", 300))
