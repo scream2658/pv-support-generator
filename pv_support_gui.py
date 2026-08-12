@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.9 — 界面骨架（MVP M1，2026-08-12 第十二版）
+光伏支架线模生成器 V1.2.10 — 界面骨架（MVP M1，2026-08-12 第十三版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.9 改动（按界面标注）：
-    1. 去掉右上角"单位：mm / kN"显示；
-    2. ① 蓝色计算文字改为【组件阵列宽/组件阵列长】；
-    3. 角度单位改为中文"度"（倾角输入框与示意图标注）；
-    4. ③ 构件截面表：区块标题与列头（构件/规格/型号/材质等级）居中；
-    5. ④ 3D 预览：左下角 XYZ 坐标缩小，地面框改为虚线；
-    6. ⑤ 荷载参数：新增【场地类别】（Ⅰ~Ⅳ类）；沿海系数勾选框与数值框拉近。
+V1.2.10 改动（按界面标注）：
+    1. 所有数值输入框右对齐；
+    2. ④ 3D 预览：左下角 XYZ 坐标放大到适中；构件颜色图例缩小；
+    3. ② 支架形式：倾角改到画布右上角固定显示（不随缩放/平移移动）；
+    4. ⑤ 荷载参数：省/市/区县/抗震设防选择行移到基本荷载与风压系数之上；
+       名称规范化：风压高度系数、正/负风压体型系数；
+       沿海系数输入框常亮（灰白禁用背景去掉）；
+    5. ② 斜梁长度改为数据框显示具体数值（去掉"≈"）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -209,7 +210,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.9")
+        root.title("光伏支架线模生成器 V1.2.10")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -227,7 +228,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.9：场地类别新增；坐标缩小；标题居中；阵列宽/长更名")
+        self.set_status("就绪 V1.2.10：数值右对齐；倾角固定右上角；省市县置顶；斜梁长度数据框")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -290,13 +291,13 @@ class PvSupportApp:
         def pair(row, label1, key1, unit1, label2, key2, unit2):
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
             self.vars[key1] = tk.StringVar()
-            e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5)
+            e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5, justify="right")
             e1.grid(row=row, column=1, sticky="w", padx=(4, 2))
             if unit1:
                 ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 8))
             ttk.Label(grp, text=label2).grid(row=row, column=3, sticky="w", pady=2)
             self.vars[key2] = tk.StringVar()
-            e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5)
+            e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5, justify="right")
             e2.grid(row=row, column=4, sticky="w", padx=(4, 2))
             if unit2:
                 ttk.Label(grp, text=unit2).grid(row=row, column=5, sticky="w")
@@ -343,13 +344,13 @@ class PvSupportApp:
         def pair(row, label1, key1, unit1, label2, key2, unit2):
             ttk.Label(grp, text=label1).grid(row=row, column=0, sticky="w", pady=2)
             self.vars[key1] = tk.StringVar()
-            e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5)
+            e1 = ttk.Entry(grp, textvariable=self.vars[key1], width=5, justify="right")
             e1.grid(row=row, column=1, sticky="w", padx=(4, 2))
             if unit1:
                 ttk.Label(grp, text=unit1).grid(row=row, column=2, sticky="w", padx=(0, 6))
             ttk.Label(grp, text=label2).grid(row=row, column=3, sticky="w", pady=2)
             self.vars[key2] = tk.StringVar()
-            e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5)
+            e2 = ttk.Entry(grp, textvariable=self.vars[key2], width=5, justify="right")
             e2.grid(row=row, column=4, sticky="w", padx=(4, 2))
             if unit2:
                 ttk.Label(grp, text=unit2).grid(row=row, column=5, sticky="w")
@@ -364,36 +365,39 @@ class PvSupportApp:
 
         ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5)
+        e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5, justify="right")
         e.grid(row=5, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=5, column=2, sticky="w", padx=(0, 6))
 
         ttk.Label(grp, text="榀数").grid(row=5, column=3, sticky="w", pady=2)
         self.vars["struct_frames"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["struct_frames"], width=5)
+        e = ttk.Entry(grp, textvariable=self.vars["struct_frames"], width=5, justify="right")
         e.grid(row=5, column=4, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
 
         ttk.Label(grp, text="斜撑离地").grid(row=6, column=0, sticky="w", pady=2)
         self.vars["brace_ground"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5)
+        e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5, justify="right")
         e.grid(row=6, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
 
         ttk.Label(grp, text="檩条外伸").grid(row=6, column=3, sticky="w", pady=2)
         self.vars["purlin_extension"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5)
+        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
         e.grid(row=6, column=4, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
-        self.beam_len_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
-        )
-        self.beam_len_label.grid(row=7, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="斜梁长度").grid(row=7, column=0, sticky="w", pady=(2, 0))
+        self.beam_len_entry = ttk.Entry(grp, width=8, state="readonly", justify="right")
+        self.beam_len_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(
+            grp, text="mm（端距×2 + (檩条数-1)×间距）", foreground="#757575",
+            font=("Microsoft YaHei UI", 8),
+        ).grid(row=7, column=2, columnspan=4, sticky="w")
         self.purlin_len_label = ttk.Label(
             grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
         )
@@ -479,9 +483,9 @@ class PvSupportApp:
         legend = ttk.Frame(frame)
         legend.pack(fill="x", pady=(4, 0))
         for role, color in MEMBER_COLORS.items():
-            box = tk.Label(legend, bg=color, width=2)
-            box.pack(side="left", padx=(8, 2), pady=2)
-            ttk.Label(legend, text=role).pack(side="left", padx=(0, 6))
+            box = tk.Label(legend, bg=color, width=1)
+            box.pack(side="left", padx=(4, 1), pady=1)
+            ttk.Label(legend, text=role, font=("Microsoft YaHei UI", 8)).pack(side="left", padx=(0, 5))
 
         btns = ttk.Frame(frame)
         btns.pack(fill="x", pady=(4, 0))
@@ -509,44 +513,90 @@ class PvSupportApp:
         def entry(row, col, label, key, default, unit=""):
             ttk.Label(grp, text=label).grid(row=row, column=col * 2, sticky="w", pady=2)
             self.vars[key] = tk.StringVar()
-            e = ttk.Entry(grp, textvariable=self.vars[key], width=5)
+            e = ttk.Entry(grp, textvariable=self.vars[key], width=5, justify="right")
             e.grid(row=row, column=col * 2 + 1, sticky="w", padx=(2, 6))
             if unit:
                 ttk.Label(grp, text=unit).grid(row=row, column=col * 2 + 2, sticky="w", padx=(0, 6))
             return e
 
-        # 左列：基本荷载（竖向）+ 地面粗糙度
+        # 上段：城市查表（省/市/区县/抗震设防 一行）
+        ttk.Label(
+            grp, text="城市查表（50年重现期）· 抗震设防", foreground="#616161",
+            font=("Microsoft YaHei UI", 9, "bold"),
+        ).grid(row=0, column=0, columnspan=12, sticky="w", pady=(0, 2))
+
+        ttk.Label(grp, text="省").grid(row=1, column=0, sticky="w", pady=2)
+        self.vars["city_prov"] = tk.StringVar()
+        self.prov_cb = ttk.Combobox(
+            grp, textvariable=self.vars["city_prov"],
+            values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
+            state="readonly", width=5,
+        )
+        self.prov_cb.grid(row=1, column=1, sticky="w", padx=(2, 8))
+        self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
+
+        ttk.Label(grp, text="市").grid(row=1, column=2, sticky="w", pady=2)
+        self.vars["city_name"] = tk.StringVar()
+        self.city_cb = ttk.Combobox(
+            grp, textvariable=self.vars["city_name"], state="readonly", width=9,
+        )
+        self.city_cb.grid(row=1, column=3, sticky="w", padx=(2, 8))
+        self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
+
+        ttk.Label(grp, text="区县").grid(row=1, column=4, sticky="w", pady=2)
+        self.vars["city_district"] = tk.StringVar()
+        self.district_cb = ttk.Combobox(
+            grp, textvariable=self.vars["city_district"], state="disabled", width=10,
+        )
+        self.district_cb.grid(row=1, column=5, sticky="w", padx=(2, 8))
+        self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
+
+        ttk.Label(grp, text="抗震设防").grid(row=1, column=6, sticky="w", pady=2)
+        self.vars["seismic"] = tk.StringVar()
+        ttk.Combobox(
+            grp, textvariable=self.vars["seismic"],
+            values=SEISMIC_OPTIONS, state="readonly", width=9,
+        ).grid(row=1, column=7, sticky="w", padx=(2, 8))
+
+        self.city_result_label = ttk.Label(
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
+        )
+        self.city_result_label.grid(row=2, column=0, columnspan=12, sticky="w", pady=(2, 0))
+
+        # 下段：基本荷载 + 风压系数
         ttk.Label(
             grp, text="基本荷载", foreground="#616161",
             font=("Microsoft YaHei UI", 9, "bold"),
-        ).grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 2))
-        entry(1, 0, "恒载", "load_dead", 0.05, "kN/m²")
-        self.snow_entry = entry(2, 0, "雪载", "load_snow", 0.20, "kN/m²")
-        self.wind_base_entry = entry(3, 0, "基本风压", "load_wind_base", 0.35, "kN/m²")
-        ttk.Label(grp, text="地面粗糙度").grid(row=4, column=0, sticky="w", pady=2)
+        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(6, 2))
+        ttk.Label(
+            grp, text="风压系数", foreground="#616161",
+            font=("Microsoft YaHei UI", 9, "bold"),
+        ).grid(row=3, column=4, columnspan=3, sticky="w", pady=(6, 2))
+
+        entry(4, 0, "恒载", "load_dead", 0.05, "kN/m²")
+        self.snow_entry = entry(5, 0, "雪载", "load_snow", 0.20, "kN/m²")
+        self.wind_base_entry = entry(6, 0, "基本风压", "load_wind_base", 0.35, "kN/m²")
+
+        ttk.Label(grp, text="地面粗糙度").grid(row=7, column=0, sticky="w", pady=2)
         self.vars["load_roughness"] = tk.StringVar()
         ttk.Combobox(
             grp, textvariable=self.vars["load_roughness"],
             values=ROUGHNESS_OPTIONS, state="readonly", width=5,
-        ).grid(row=4, column=1, sticky="w", padx=(2, 6))
-        ttk.Label(grp, text="场地类别").grid(row=5, column=0, sticky="w", pady=2)
+        ).grid(row=7, column=1, sticky="w", padx=(2, 6))
+
+        ttk.Label(grp, text="场地类别").grid(row=8, column=0, sticky="w", pady=2)
         self.vars["site_class"] = tk.StringVar()
         ttk.Combobox(
             grp, textvariable=self.vars["site_class"],
             values=["Ⅰ类", "Ⅱ类", "Ⅲ类", "Ⅳ类"], state="readonly", width=5,
-        ).grid(row=5, column=1, sticky="w", padx=(2, 6))
+        ).grid(row=8, column=1, sticky="w", padx=(2, 6))
 
-        # 中列：风压系数（竖向，含阵风系数、沿海放大系数）
-        ttk.Label(
-            grp, text="风压系数", foreground="#616161",
-            font=("Microsoft YaHei UI", 9, "bold"),
-        ).grid(row=0, column=4, columnspan=3, sticky="w", pady=(0, 2))
-        entry(1, 2, "高度系数", "load_mu_z", 1.10)
-        entry(2, 2, "阵风系数", "load_beta_z", 1.00)
-        entry(3, 2, "正压体型系数", "load_mu_s_pos", 1.30)
-        entry(4, 2, "负压体型系数", "load_mu_s_neg", -1.30)
+        entry(4, 2, "风压高度系数", "load_mu_z", 1.10)
+        entry(5, 2, "阵风系数", "load_beta_z", 1.00)
+        entry(6, 2, "正风压体型系数", "load_mu_s_pos", 1.30)
+        entry(7, 2, "负风压体型系数", "load_mu_s_neg", -1.30)
         coast_frame = ttk.Frame(grp)
-        coast_frame.grid(row=5, column=4, columnspan=3, sticky="w", pady=2)
+        coast_frame.grid(row=8, column=4, columnspan=3, sticky="w", pady=2)
         self.vars["load_coastal_enabled"] = tk.BooleanVar(value=False)
         tk.Checkbutton(
             coast_frame, text="沿海城市风压放大系数", variable=self.vars["load_coastal_enabled"],
@@ -554,59 +604,15 @@ class PvSupportApp:
         ).pack(side="left")
         self.vars["load_coastal"] = tk.StringVar()
         self.coastal_entry = ttk.Entry(
-            coast_frame, textvariable=self.vars["load_coastal"], width=5, state="disabled",
+            coast_frame, textvariable=self.vars["load_coastal"], width=5, justify="right",
         )
         self.coastal_entry.pack(side="left", padx=(4, 0))
-
-        # 下段：城市查表（省/市/区县/抗震设防 一行排布）
-        ttk.Label(
-            grp, text="城市查表（50年重现期）· 抗震设防", foreground="#616161",
-            font=("Microsoft YaHei UI", 9, "bold"),
-        ).grid(row=7, column=0, columnspan=12, sticky="w", pady=(6, 2))
-
-        ttk.Label(grp, text="省").grid(row=8, column=0, sticky="w", pady=2)
-        self.vars["city_prov"] = tk.StringVar()
-        self.prov_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_prov"],
-            values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
-            state="readonly", width=5,
-        )
-        self.prov_cb.grid(row=8, column=1, sticky="w", padx=(2, 8))
-        self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
-
-        ttk.Label(grp, text="市").grid(row=8, column=2, sticky="w", pady=2)
-        self.vars["city_name"] = tk.StringVar()
-        self.city_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_name"], state="readonly", width=9,
-        )
-        self.city_cb.grid(row=8, column=3, sticky="w", padx=(2, 8))
-        self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
-
-        ttk.Label(grp, text="区县").grid(row=8, column=4, sticky="w", pady=2)
-        self.vars["city_district"] = tk.StringVar()
-        self.district_cb = ttk.Combobox(
-            grp, textvariable=self.vars["city_district"], state="disabled", width=10,
-        )
-        self.district_cb.grid(row=8, column=5, sticky="w", padx=(2, 8))
-        self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
-
-        ttk.Label(grp, text="抗震设防").grid(row=8, column=6, sticky="w", pady=2)
-        self.vars["seismic"] = tk.StringVar()
-        ttk.Combobox(
-            grp, textvariable=self.vars["seismic"],
-            values=SEISMIC_OPTIONS, state="readonly", width=9,
-        ).grid(row=8, column=7, sticky="w", padx=(2, 8))
-
-        self.city_result_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 8, "bold"),
-        )
-        self.city_result_label.grid(row=9, column=0, columnspan=12, sticky="w", pady=(2, 0))
 
         ttk.Label(
             grp, foreground="#757575",
             text="沿海风压放大按需勾选；选定城市后风压/雪载锁定；抗震烈度按省-市-区县自动匹配",
             wraplength=1000,
-        ).grid(row=10, column=0, columnspan=12, sticky="w", pady=(2, 0))
+        ).grid(row=9, column=0, columnspan=12, sticky="w", pady=(4, 0))
 
     def _build_status_bar(self):
         self.status = ttk.Label(
@@ -644,9 +650,7 @@ class PvSupportApp:
         self.snow_entry.configure(state=state)
 
     def _toggle_coastal(self):
-        enabled = self.vars["load_coastal_enabled"].get()
-        self.coastal_entry.configure(state="normal" if enabled else "disabled")
-        if not enabled:
+        if not self.vars["load_coastal_enabled"].get():
             self.vars["load_coastal"].set("1.00")
 
     def _on_province_change(self, _event=None):
@@ -794,9 +798,10 @@ class PvSupportApp:
             geo = self._profile_geometry()
             beam_len = geo[0] if geo else 0.0
             purlin_n = max(2, rows * 2)
-            self.beam_len_label.config(
-                text=f"斜梁长度 ≈ {beam_len:.0f} mm（端距×2 + {purlin_n - 1}×檩条间距）"
-            )
+            self.beam_len_entry.configure(state="normal")
+            self.beam_len_entry.delete(0, "end")
+            self.beam_len_entry.insert(0, f"{beam_len:.0f}")
+            self.beam_len_entry.configure(state="readonly")
             self.purlin_len_label.config(
                 text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm（组件总长 + 2×外伸）"
             )
@@ -812,7 +817,10 @@ class PvSupportApp:
             self.draw_viewer()
         except (ValueError, tk.TclError):
             self.calc_label.config(text="组件总宽/总长：参数不完整")
-            self.beam_len_label.config(text="")
+            self.beam_len_entry.configure(state="normal")
+            self.beam_len_entry.delete(0, "end")
+            self.beam_len_entry.insert(0, "")
+            self.beam_len_entry.configure(state="readonly")
             self.purlin_len_label.config(text="")
             self.frame_warn_label.config(text="")
 
@@ -927,11 +935,9 @@ class PvSupportApp:
                 fill=MEMBER_COLORS["檩条"], width=2,
             )
 
-        r = max(24, min(40, scale * 240))
-        c.create_arc(ax - r, ay - r, ax + r, ay + r,
-                     start=0, extent=-math.degrees(a), style="arc", outline="#757575")
+        # 倾角：固定显示在画布右上角，不随缩放/平移移动
         c.create_text(
-            ax + r * 0.78, ay - r * 0.5, text=f"{math.degrees(a):.0f}度",
+            cw - 8, 12, anchor="ne", text=f"倾角 {math.degrees(a):.0f}度",
             fill="#424242", font=("Microsoft YaHei UI", 9, "bold"),
         )
 
@@ -1062,7 +1068,7 @@ class PvSupportApp:
             dx = (v[0] - o[0]) * scale
             dy = -(v[2] - o[2]) * scale * cp + (v[1] - o[1]) * scale * sp
             ln = math.hypot(dx, dy) or 1.0
-            ex, ey = dx / ln * 20, dy / ln * 20
+            ex, ey = dx / ln * 26, dy / ln * 26
             c.create_line(bx0, by0, bx0 + ex, by0 + ey, fill=color, width=2)
             c.create_text(bx0 + ex, by0 + ey - 5, text=label, fill=color,
                           font=("Microsoft YaHei UI", 9, "bold"))
