@@ -25,6 +25,7 @@
     "frames": 3,
     "purlin_interval": 1500,
     "purlin_end_offset": 150,
+    "purlin_extension": 150,
     "brace_front": 960,
     "brace_rear": 1808
   },
@@ -45,8 +46,14 @@
     "mu_z": 1.1,
     "beta_z": 1.0,
     "coastal": 1.1,
+    "coastal_enabled": false,
     "mu_s_pos": 1.3,
     "mu_s_neg": -1.3,
-    "seismic": "7度(0.10g)"
+    "seismic": "7度(0.10g)",
+    "city": {
+      "province": "北京",
+      "city": "北京",
+      "district": ""
+    }
   }
 }

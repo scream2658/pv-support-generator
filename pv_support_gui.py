@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.5 — 界面骨架（MVP M1，2026-08-12 第八版）
+光伏支架线模生成器 V1.2.6 — 界面骨架（MVP M1，2026-08-12 第九版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.5 改动：
-    1. ⑤ 荷载参数整体压缩，三列间距收紧；新增【抗震设防烈度】（城市查表联动，
-       数据待补充 GB50011/GB18306 规范后自动接入）；
-    2. 城市选定后，基本风压/雪载自动锁定为规范值（灰显不可改），
-       省下拉选“（手动输入）”可解锁手动填写；
-    3. ③ 构件截面表：规格下拉宽度贴合文字；
-    4. ② 支架形式：去掉缩放/复位按钮（标题已注明滚轮缩放、右键平移），
-       参数重新带单位（mm / °）；默认居中；
-    5. 阵列参数改为【品数】（1~4 品可设），3D 预览按品数生成多榀；
-    6. 檩条根数修正：两排组件对应 4 根檩条，按端距均布在斜梁上；
-    7. 单立柱改为立于斜梁中心正下方（支架左右平衡）；
-    8. 窗口图标换成支架线框样式。
+V1.2.6 改动：
+    1. 默认城市=北京/北京，启动即带真实风压/雪压（0.45/0.40，锁定不可改）；
+    2. 城市查表增加【区县】级下拉（抗震设防按县/区区分，数据接入后启用）；
+    3. 沿海放大改为复选框：勾选才启用放大系数输入，不勾选默认 1.0；
+    4. “品数”改为“榀数”（木字旁，一榀框架），3D 显示“X 榀”；
+    5. 单立柱补上后斜撑（前/后斜撑都有）；
+    6. 榀数×柱距 > 组件阵列总长时给出红色提醒；
+    7. 新增【檩条外伸】参数（默认 150mm，压块安装用），自动显示檩条总长。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -90,15 +86,17 @@ DEFAULT_PARAMS = {
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
     "structure": {"type": "单立柱", "bay": 2000, "frames": 3,
                   "purlin_interval": 1500, "purlin_end_offset": 150,
+                  "purlin_extension": 150,
                   "brace_front": 960, "brace_rear": 1808},
     "sections": {
         role: {"spec": spec, "model": model, "material": mat}
         for role, spec, model, mat in MEMBER_ROLES
     },
     "loads": {"dead": 0.05, "wind_base": 0.35, "snow": 0.20, "roughness": "B类",
-              "mu_z": 1.10, "beta_z": 1.00, "coastal": 1.10,
+              "mu_z": 1.10, "beta_z": 1.00, "coastal": 1.10, "coastal_enabled": False,
               "mu_s_pos": 1.30, "mu_s_neg": -1.30,
-              "seismic": "7度(0.10g)"},
+              "seismic": "7度(0.10g)",
+              "city": {"province": "北京", "city": "北京", "district": ""}},
 }
 
 
@@ -194,7 +192,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.5")
+        root.title("光伏支架线模生成器 V1.2.6")
         root.geometry("1280x840")
         root.resizable(False, False)
         try:
@@ -212,7 +210,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.5：城市查表自动锁定风压/雪载；3D 按品数生成多榀")
+        self.set_status("就绪 V1.2.6：默认北京/北京，风压/雪载按规范锁定；3D 按榀数生成")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -355,12 +353,29 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=5, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="品数").grid(row=5, column=3, sticky="w", pady=2)
+        ttk.Label(grp, text="榀数").grid(row=5, column=3, sticky="w", pady=2)
         self.vars["struct_frames"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_frames"], width=5)
         e.grid(row=5, column=4, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
-        ttk.Label(grp, text="品").grid(row=5, column=5, sticky="w")
+        ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
+
+        ttk.Label(grp, text="檩条外伸").grid(row=6, column=0, sticky="w", pady=2)
+        self.vars["purlin_extension"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5)
+        e.grid(row=6, column=1, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
+
+        self.purlin_len_label = ttk.Label(
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
+        )
+        self.purlin_len_label.grid(row=7, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        self.frame_warn_label = ttk.Label(
+            grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
+            wraplength=540, justify="left",
+        )
+        self.frame_warn_label.grid(row=8, column=0, columnspan=6, sticky="w", pady=(2, 0))
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
@@ -497,7 +512,16 @@ class PvSupportApp:
         entry(2, 2, "阵风系数", "load_beta_z", 1.00)
         entry(3, 2, "正压体型系数", "load_mu_s_pos", 1.30)
         entry(4, 2, "负压体型系数", "load_mu_s_neg", -1.30)
-        entry(5, 2, "沿海放大", "load_coastal", 1.10)
+        self.vars["load_coastal_enabled"] = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            grp, text="沿海风压放大", variable=self.vars["load_coastal_enabled"],
+            command=self._toggle_coastal,
+        ).grid(row=5, column=4, columnspan=2, sticky="w", pady=2)
+        self.vars["load_coastal"] = tk.StringVar()
+        self.coastal_entry = ttk.Entry(
+            grp, textvariable=self.vars["load_coastal"], width=5, state="disabled",
+        )
+        self.coastal_entry.grid(row=5, column=6, sticky="w", padx=(2, 6))
 
         # 右列：城市查表（省/市一行）+ 抗震设防烈度
         ttk.Label(
@@ -540,9 +564,17 @@ class PvSupportApp:
             wraplength=300,
         ).grid(row=4, column=8, columnspan=4, sticky="w", pady=(0, 2))
 
+        ttk.Label(grp, text="区县").grid(row=5, column=8, sticky="w", pady=2)
+        self.vars["city_district"] = tk.StringVar()
+        self.district_cb = ttk.Combobox(
+            grp, textvariable=self.vars["city_district"], state="disabled", width=9,
+        )
+        self.district_cb.grid(row=5, column=9, columnspan=3, sticky="w", padx=(2, 4))
+        self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
+
         ttk.Label(
             grp, foreground="#757575",
-            text="沿海放大：沿海城市基本风压按规范放大 1.1 倍，可调；选定城市后风压/雪载自动锁定",
+            text="沿海风压放大：按需勾选，勾选后按 1.1 倍放大；选定城市后风压/雪载自动锁定",
             wraplength=560,
         ).grid(row=6, column=0, columnspan=12, sticky="w", pady=(4, 0))
 
@@ -576,6 +608,12 @@ class PvSupportApp:
         self.wind_base_entry.configure(state=state)
         self.snow_entry.configure(state=state)
 
+    def _toggle_coastal(self):
+        enabled = self.vars["load_coastal_enabled"].get()
+        self.coastal_entry.configure(state="normal" if enabled else "disabled")
+        if not enabled:
+            self.vars["load_coastal"].set("1.00")
+
     def _on_province_change(self, _event=None):
         prov = self.vars["city_prov"].get()
         if prov == MANUAL_PROVINCE:
@@ -583,6 +621,8 @@ class PvSupportApp:
             self.city_cb.configure(values=[])
             self.city_result_label.config(text="手动输入模式（风压/雪载可编辑）")
             self._set_load_locked(False)
+            self.district_cb.configure(values=[], state="disabled")
+            self.vars["city_district"].set("")
             return
         cities = sorted(self.city_data.get(prov, {}).keys())
         self.city_cb.configure(values=cities)
@@ -605,10 +645,26 @@ class PvSupportApp:
             text=f"风压 {rec['w50']} · 雪压 {rec['s50']} kN/m²（规范值，已锁定）"
         )
         self._set_load_locked(True)
+        # 区县级抗震数据（若有）
+        districts = sorted(self.seismic_data.get(prov, {}).get(city, {}).keys())
+        if districts:
+            self.district_cb.configure(values=districts, state="readonly")
+            self.vars["city_district"].set("")
+        else:
+            self.district_cb.configure(values=[], state="disabled")
+            self.vars["city_district"].set("")
         # 抗震设防烈度：若已补充规范数据则自动匹配
         se = self.seismic_data.get(prov, {}).get(city)
         if se and se.get("intensity") in SEISMIC_OPTIONS:
             self.vars["seismic"].set(se["intensity"])
+
+    def _on_district_change(self, _event=None):
+        prov = self.vars["city_prov"].get()
+        city = self.vars["city_name"].get()
+        district = self.vars["city_district"].get()
+        rec = self.seismic_data.get(prov, {}).get(city, {}).get(district)
+        if rec and rec.get("intensity") in SEISMIC_OPTIONS:
+            self.vars["seismic"].set(rec["intensity"])
 
     # ------------------------------------------------------------ 联动逻辑
     def _on_lib_change(self, _event=None):
@@ -693,10 +749,26 @@ class PvSupportApp:
                 text=f"组件总宽 {total_width:.0f} mm　组件总长 {total_length:.0f} mm\n"
                      f"阵列功率 ≈ {power_kw:.2f} kW（{count} 块 × {power:.0f} W）"
             )
+            frames = int(float(self.vars["struct_frames"].get()))
+            bay = float(self.vars["struct_bay"].get())
+            extension = float(self.vars["purlin_extension"].get())
+            self.purlin_len_label.config(
+                text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm（组件总长 + 2×外伸）"
+            )
+            frames_len = frames * bay
+            if frames_len > total_length:
+                self.frame_warn_label.config(
+                    text=f"⚠ 榀数×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
+                         f"{total_length:.0f} mm，请减小榀数或柱距"
+                )
+            else:
+                self.frame_warn_label.config(text="")
             self.draw_profile()
             self.draw_viewer()
         except (ValueError, tk.TclError):
             self.calc_label.config(text="组件总宽/总长：参数不完整")
+            self.purlin_len_label.config(text="")
+            self.frame_warn_label.config(text="")
 
     # ------------------------------------------------------------ 几何辅助
     def _profile_geometry(self):
@@ -795,6 +867,10 @@ class PvSupportApp:
             if 0 < t_b < slope:
                 bx2, by2 = P(t_b * math.cos(a), ground + t_b * math.sin(a))
                 c.create_line(*P(mid_x, 0), bx2, by2, fill=MEMBER_COLORS["斜撑"], width=2)
+            t_r = span / 2 + brace_rear
+            if 0 < t_r < slope:
+                rx2, ry2 = P(t_r * math.cos(a), ground + t_r * math.sin(a))
+                c.create_line(*P(mid_x, 0), rx2, ry2, fill=MEMBER_COLORS["斜撑"], width=2)
 
         for t in self._purlin_positions(slope):
             px, py = P(t * math.cos(a), ground + t * math.sin(a))
@@ -882,6 +958,10 @@ class PvSupportApp:
                 if 0 < t_b < slope:
                     p = beam_pt(t_b, y)
                     lines.append(((mid_x, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
+                t_r = span / 2 + brace_rear
+                if 0 < t_r < slope:
+                    p = beam_pt(t_r, y)
+                    lines.append(((mid_x, y, 0), (p[0], y, p[2]), MEMBER_COLORS["斜撑"]))
 
         # 檩条：横跨所有品
         y0, y1 = frame_ys[0], frame_ys[-1]
@@ -932,7 +1012,7 @@ class PvSupportApp:
 
         c.create_text(
             cx, h - 10, fill="#757575",
-            text=f"{frames} 品 · 中键旋转（Z轴竖直）· 右键平移 · 滚轮缩放",
+            text=f"{frames} 榀 · 中键旋转（Z轴竖直）· 右键平移 · 滚轮缩放",
             font=("Microsoft YaHei UI", 9),
         )
 
@@ -967,6 +1047,7 @@ class PvSupportApp:
                 "bay": f("struct_bay"), "frames": i("struct_frames"),
                 "purlin_interval": f("struct_purlin_interval"),
                 "purlin_end_offset": f("purlin_end_offset"),
+                "purlin_extension": f("purlin_extension"),
                 "brace_front": f("brace_front"),
                 "brace_rear": f("brace_rear"),
             },
@@ -985,13 +1066,15 @@ class PvSupportApp:
                 "roughness": self.vars["load_roughness"].get(),
                 "mu_z": f("load_mu_z"),
                 "beta_z": f("load_beta_z"),
-                "coastal": f("load_coastal"),
+                "coastal": f("load_coastal") if self.vars["load_coastal_enabled"].get() else 1.0,
+                "coastal_enabled": self.vars["load_coastal_enabled"].get(),
                 "mu_s_pos": f("load_mu_s_pos"),
                 "mu_s_neg": f("load_mu_s_neg"),
                 "seismic": self.vars["seismic"].get(),
                 "city": {
                     "province": self.vars["city_prov"].get(),
                     "city": self.vars["city_name"].get(),
+                    "district": self.vars["city_district"].get(),
                 },
             },
         }
@@ -1025,6 +1108,7 @@ class PvSupportApp:
         setv("struct_frames", st.get("frames", st.get("array_rows", 3)))
         setv("struct_purlin_interval", st.get("purlin_interval", 1500))
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
+        setv("purlin_extension", st.get("purlin_extension", 150))
         setv("brace_front", st.get("brace_front", 960))
         setv("brace_rear", st.get("brace_rear", 1808))
         for role, _, _, _ in MEMBER_ROLES:
@@ -1052,6 +1136,9 @@ class PvSupportApp:
         setv("load_roughness", rough)
         setv("load_mu_z", ld.get("mu_z", 1.10))
         setv("load_beta_z", ld.get("beta_z", 1.00))
+        coastal_enabled = ld.get("coastal_enabled", False)
+        self.vars["load_coastal_enabled"].set(bool(coastal_enabled))
+        self._toggle_coastal()
         setv("load_coastal", ld.get("coastal", 1.10))
         setv("load_mu_s_pos", ld.get("mu_s_pos", 1.30))
         setv("load_mu_s_neg", ld.get("mu_s_neg", -1.30))
@@ -1064,11 +1151,16 @@ class PvSupportApp:
             if city.get("city") in cities:
                 setv("city_name", city["city"])
                 self._on_city_change()
+                if city.get("district") in list(self.district_cb.cget("values")):
+                    setv("city_district", city["district"])
+                    self._on_district_change()
         else:
             # 无城市记录 → 手动输入模式
             self.vars["city_prov"].set(MANUAL_PROVINCE)
             self.vars["city_name"].set("")
             self.city_cb.configure(values=[])
+            self.district_cb.configure(values=[], state="disabled")
+            self.vars["city_district"].set("")
             self._set_load_locked(False)
             self.city_result_label.config(text="手动输入模式（风压/雪载可编辑）")
         self.update_calc()
