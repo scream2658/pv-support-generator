@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.16 — 界面骨架（MVP M1，2026-08-12 第十九版）
+光伏支架线模生成器 V1.2.17 — 界面骨架（MVP M1，2026-08-12 第二十版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.16 改动（前/后斜撑长度按余弦定理计算）：
-    1. 新增两个输入参数：前斜撑距梁端（距斜梁下端，默认350）、
-       后斜撑距梁端（距斜梁上端，默认350）；
-    2. 立柱高度 = 最低点高度 + 斜梁半长×sin(倾角)；
-    3. 前斜撑长度 = √(a²+b²−2ab·cos(90°−倾角))，
-       后斜撑长度 = √(a²+b²−2ab·cos(90°+倾角))，
-       其中 a = 立柱高度−斜撑离地，b = 斜梁半长−距梁端（单立柱，梁中点立柱）；
-    4. 立柱高度、前斜撑长度、后斜撑长度均为灰显推导值；
-    5. 2D/3D 示意图斜撑上端点按"距梁端"参数定位。
+V1.2.17 改动（立柱高度修正）：
+    1. 新增【梁中心偏移】参数（默认150mm）：组件最低点至斜梁中心线的
+       垂直距离（主要由檩条截面高度决定，M4 可从檩条截面自动带出）；
+    2. 实际立柱高度 = 最低点高度 + 斜梁半长×sin(倾角) − 梁中心偏移；
+       斜梁中心线整体下移偏移量，前/后斜撑长度按修正后的立柱高度计算；
+    3. 斜梁长度不受影响（长细比影响仅几十毫米，忽略）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -104,7 +101,8 @@ DEFAULT_PARAMS = {
     "layout": {"rows": 2, "cols": 15, "tilt": 20, "gap": 20, "ground_gap": 1000},
     "structure": {"type": "单立柱", "bay": 2000, "frames": 8,
                   "purlin_end_offset": 150, "purlin_extension": 150,
-                  "brace_ground": 300, "brace_front_off": 350, "brace_rear_off": 350},
+                  "beam_center_offset": 150, "brace_ground": 300,
+                  "brace_front_off": 350, "brace_rear_off": 350},
     "sections": {
         role: {"spec": spec, "model": model, "material": mat}
         for role, spec, model, mat in MEMBER_ROLES
@@ -210,7 +208,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.16")
+        root.title("光伏支架线模生成器 V1.2.17")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -228,7 +226,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.16：前后斜撑长度按余弦定理自动计算（灰显锁定）")
+        self.set_status("就绪 V1.2.17：梁中心偏移150修正立柱高度；斜撑长度联动")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -368,6 +366,13 @@ class PvSupportApp:
         e.grid(row=4, column=1, sticky="w", padx=(4, 2))
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="梁中心偏移").grid(row=4, column=3, sticky="w", pady=2)
+        self.vars["beam_center_offset"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["beam_center_offset"], width=5, justify="right")
+        e.grid(row=4, column=4, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=4, column=5, sticky="w")
 
         ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
@@ -853,13 +858,15 @@ class PvSupportApp:
             brace_ground = float(self.vars["brace_ground"].get())
             front_off = float(self.vars["brace_front_off"].get())
             rear_off = float(self.vars["brace_rear_off"].get())
+            beam_off = float(self.vars["beam_center_offset"].get())
+            ground_beam = ground - beam_off
             if self.vars["support_type"].get() == "单立柱":
-                col_front_h = col_rear_h = ground + beam_half * math.sin(alpha)
+                col_front_h = col_rear_h = ground_beam + beam_half * math.sin(alpha)
                 front_side = max(0.0, beam_half - front_off)
                 rear_side = max(0.0, beam_half - rear_off)
             else:
-                col_front_h = ground
-                col_rear_h = ground + beam_len * math.sin(alpha)
+                col_front_h = ground_beam
+                col_rear_h = ground_beam + beam_len * math.sin(alpha)
                 front_side = max(0.0, front_off)
                 rear_side = max(0.0, rear_off)
             front_v = max(0.0, col_front_h - brace_ground)
@@ -925,6 +932,7 @@ class PvSupportApp:
             end_offset = float(self.vars["purlin_end_offset"].get())
             tilt = float(self.vars["layout_tilt"].get())
             ground = float(self.vars["layout_ground_gap"].get())
+            beam_off = float(self.vars["beam_center_offset"].get())
         except (ValueError, tk.TclError):
             return None
         # 斜梁长度 = 檩条总跨度 + 端距×2（檩条位置由组件背板孔距推导），取整到10mm
@@ -939,6 +947,8 @@ class PvSupportApp:
         rise = slope * math.sin(a)
         if span <= 0:
             return None
+        # 斜梁中心线低于组件最低点（檩条+组件坐落在斜梁上）
+        ground = ground - beam_off
         return slope, span, rise, ground, a
 
     def _purlin_positions(self):
@@ -1213,6 +1223,7 @@ class PvSupportApp:
                 "bay": f("struct_bay"), "frames": i("struct_frames"),
                 "purlin_end_offset": f("purlin_end_offset"),
                 "purlin_extension": f("purlin_extension"),
+                "beam_center_offset": f("beam_center_offset"),
                 "brace_ground": f("brace_ground"),
                 "brace_front_off": f("brace_front_off"),
                 "brace_rear_off": f("brace_rear_off"),
@@ -1276,6 +1287,7 @@ class PvSupportApp:
         setv("struct_frames", st.get("frames", st.get("array_rows", 3)))
         setv("purlin_end_offset", st.get("purlin_end_offset", 150))
         setv("purlin_extension", st.get("purlin_extension", 150))
+        setv("beam_center_offset", st.get("beam_center_offset", 150))
         setv("brace_ground", st.get("brace_ground", 300))
         setv("brace_front_off", st.get("brace_front_off", 350))
         setv("brace_rear_off", st.get("brace_rear_off", 350))

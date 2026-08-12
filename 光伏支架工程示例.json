@@ -26,6 +26,7 @@
     "frames": 8,
     "purlin_end_offset": 150,
     "purlin_extension": 150,
+    "beam_center_offset": 150,
     "brace_ground": 300,
     "brace_front_off": 350,
     "brace_rear_off": 350
