@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.32 — 界面骨架（MVP M1，2026-08-12 第三十五版）
+光伏支架线模生成器 V1.2.33 — 界面骨架（MVP M1，2026-08-12 第三十六版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.32 改动（檩条 K 节点按自身位置）：
-    1. 每根檩条按自身位置设置 K 节点（x 同檩条、z 上方 1000），
-       局部 2 轴统一指向竖直，4 根严格平行；
-    2. 角度统一 160°，其余构件沿用全局 K（方位已正确）。
+V1.2.33 改动（檩条角度定版 70°）：
+    1. 檩条绕1轴转角 160°→70°（160−90，局部轴一致）；
+       4 根檩条 K 节点仍按自身位置设置，严格平行。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -212,7 +211,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.32")
+        root.title("光伏支架线模生成器 V1.2.33")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -230,7 +229,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.32：檩条按自身位置设K节点，4根严格平行（160°）")
+        self.set_status("就绪 V1.2.33：檩条角度70°定版（160−90），4根严格平行")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
