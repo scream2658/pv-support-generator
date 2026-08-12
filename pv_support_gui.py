@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.20 — 界面骨架（MVP M1，2026-08-12 第二十三版）
+光伏支架线模生成器 V1.2.21 — 界面骨架（MVP M1，2026-08-12 第二十四版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.20 改动（热修复）：
-    1. 修复启动崩溃：update_calc 中补充读取倾角(tilt)与最低点高度(ground)
-       两个变量（V1.2.16 引入斜撑计算后漏读，导致启动即 NameError）；
-    2. 已实际启动验证：默认值 梁长4000/悬挑795/檩条总长17590/立柱1534/
-       前斜撑1689/后斜撑2374，超限提醒逻辑正常。
+V1.2.21 改动（M2 几何引擎起步）：
+    1. 新增 pv_geometry.py 几何引擎：参数 → 节点/杆件线模
+       （立柱/斜梁/檩条通长/前后斜撑/支座），支持单立柱与单桩双立柱、任意榀数；
+    2. 生成 DXF 按钮接入真实导出（纯手写标准 DXF，无第三方依赖，
+       图层按构件分组：L-COLUMN / L-BEAM / L-PURLIN / L-BRACE / L-SUPPORT）；
+    3. 已实测：9 榀单立柱 71 节点/40 杆件；双立柱 80 节点/49 杆件。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -22,6 +23,8 @@ import struct
 import tkinter as tk
 import zlib
 from tkinter import filedialog, messagebox, ttk
+
+from pv_geometry import write_dxf
 
 
 # --------------------------------------------------------------------------
@@ -215,7 +218,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.20")
+        root.title("光伏支架线模生成器 V1.2.21")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -233,7 +236,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.20：启动崩溃已修复，参数联动正常")
+        self.set_status("就绪 V1.2.21：几何引擎接入，生成 DXF 已可用")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1374,13 +1377,32 @@ class PvSupportApp:
         self.set_status("参数已收集 ✔ 几何引擎未接入（M2 里程碑），3D 预览为示意线框")
 
     def on_export_dxf(self):
-        self.set_status("【生成 DXF】尚未接入（M3 里程碑：ezdxf 导出线模）")
+        try:
+            params = self.collect_params()
+        except ValueError as exc:
+            messagebox.showwarning("参数有误", str(exc))
+            return
+        path = filedialog.asksaveasfilename(
+            title="导出 DXF 线模", defaultextension=".dxf",
+            filetypes=[("DXF 文件", "*.dxf")], initialfile="光伏支架线模.dxf",
+        )
+        if not path:
+            return
+        try:
+            model = write_dxf(params, path)
+        except Exception as exc:
+            messagebox.showerror("导出失败", str(exc))
+            return
+        info = model["info"]
+        self.set_status(
+            f"DXF 已导出：{path}（{info['node_count']} 节点 / {info['member_count']} 杆件）"
+        )
 
     def on_export_3d3s(self):
-        self.set_status("【生成 3D3S】尚未接入（M3 里程碑：DXF 导入 3D3S 验证）")
+        self.set_status("【生成 3D3S】先导出 DXF 线模，在 3D3S 2024 中试导入验证（M3 进行中）")
 
     def on_export_sap(self):
-        self.set_status("【生成 SAP2000】尚未接入（M3 里程碑：.s2k 导出）")
+        self.set_status("【生成 SAP2000】M3 进行中：下一步生成 .s2k（含截面/荷载）")
 
     def save_project(self):
         try:
