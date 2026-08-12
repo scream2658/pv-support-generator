@@ -35,6 +35,9 @@ SPEC_TYPE_ID = {
 
 def _sec_name_3d3s(spec, model):
     """截面名称转 3D3S 格式。"""
+    if spec == "槽钢":
+        # 槽8 -> [8（3D3S 槽钢用方括号表示法）
+        return "[" + model.replace("槽", "")
     if spec == "角钢":
         return model.replace("×", "x").replace("L", "L")
     if spec == "矩形钢管":
@@ -50,6 +53,8 @@ def _sec_name_3d3s(spec, model):
 
 def _sec_data_3d3s(spec, model):
     """VALUE 型截面的 SecData（圆管给出 D,0,t,0x7；其余按名称引用库）。"""
+    if spec == "槽钢":
+        return _sec_name_3d3s(spec, model)
     if spec == "圆钢/圆管":
         import re
         m = re.match(r"(?:圆管|圆钢φ|φ)([\d.]+)(?:[x×])([\d.]+)", model)
@@ -77,9 +82,9 @@ MATERIAL_ROWS = {
 # （斜梁/檩条=0，立柱/斜撑=90；若仍有偏差请反馈具体构件需转多少度）
 ROLE_ANGLE = {
     "斜梁": 0,
-    "檩条": 0,
+    "檩条": 110,
     "斜撑": 90,
-    "立柱": 90,
+    "立柱": 180,
 }
 
 

@@ -48,8 +48,11 @@ def _section(params, role):
     model = sec.get("model", "自定义")
     stype = SPEC_3D3S_TYPE.get(spec, spec)
     # 3D3S 名称用 X 分隔（角钢模板用 x）
-    sep = "x" if spec == "角钢" else "X"
-    name = model.replace("×", sep).replace("x", sep).replace("X", sep)
+    if spec == "槽钢":
+        name = "[" + model.replace("槽", "")
+    else:
+        sep = "x" if spec == "角钢" else "X"
+        name = model.replace("×", sep).replace("x", sep).replace("X", sep)
     return stype, name
 
 
