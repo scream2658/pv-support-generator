@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.14 — 界面骨架（MVP M1，2026-08-12 第十七版）
+光伏支架线模生成器 V1.2.15 — 界面骨架（MVP M1，2026-08-12 第十八版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.14 改动（檩条悬挑工程校验 + 推导值只读）：
-    1. "柱距"改名为"品间距"（与工程术语一致）；
-    2. 檩条悬挑 = (檩条总长 − 品间距×品数)/2，自动校验：
-       · 悬挑 ＞ 800mm → 提醒"品间距或品数过少，请增大"；
-       · 悬挑 ＜ 0 → 提醒"品间距×品数超出檩条总长，请减小"；
-    3. 推导值只读化（灰显不可编辑）：檩条悬挑、斜梁长度、檩条总长
-       均由前面参数自动算出，不再人工输入（与风压锁定一致）。
+V1.2.15 改动：
+    1. "品间距"改回"柱距"（更符合工程命名）；
+    2. 檩条悬挑、斜梁长度、檩条总长三个推导结果改为灰显锁定
+       （与风压/雪载锁定样式一致，不可编辑）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -208,7 +205,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.14")
+        root.title("光伏支架线模生成器 V1.2.15")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -226,7 +223,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.14：悬挑0~800校验；品间距改名；檩条总长/悬挑/斜梁长度只读推导")
+        self.set_status("就绪 V1.2.15：柱距命名恢复；悬挑/斜梁/檩条总长灰显锁定")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -367,7 +364,7 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=4, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="品间距").grid(row=5, column=0, sticky="w", pady=2)
+        ttk.Label(grp, text="柱距").grid(row=5, column=0, sticky="w", pady=2)
         self.vars["struct_bay"] = tk.StringVar()
         e = ttk.Entry(grp, textvariable=self.vars["struct_bay"], width=5, justify="right")
         e.grid(row=5, column=1, sticky="w", padx=(4, 2))
@@ -402,7 +399,7 @@ class PvSupportApp:
         ttk.Label(grp, text="mm").grid(row=7, column=5, sticky="w")
 
         ttk.Label(grp, text="檩条悬挑").grid(row=8, column=0, sticky="w", pady=2)
-        self.overhang_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.overhang_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
         self.overhang_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
 
@@ -413,12 +410,12 @@ class PvSupportApp:
         self.overhang_warn_label.grid(row=9, column=0, columnspan=6, sticky="w", pady=(2, 0))
 
         ttk.Label(grp, text="斜梁长度").grid(row=10, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
         self.beam_len_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=10, column=2, sticky="w", padx=(0, 6))
 
         ttk.Label(grp, text="檩条总长").grid(row=11, column=0, sticky="w", pady=(2, 0))
-        self.purlin_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
         self.purlin_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
@@ -819,34 +816,34 @@ class PvSupportApp:
             self.beam_len_entry.configure(state="normal")
             self.beam_len_entry.delete(0, "end")
             self.beam_len_entry.insert(0, f"{beam_len:.0f}")
-            self.beam_len_entry.configure(state="readonly")
+            self.beam_len_entry.configure(state="disabled")
             purlin_total = total_length + 2 * extension
             overhang = (purlin_total - frames * bay) / 2
             self.overhang_entry.configure(state="normal")
             self.overhang_entry.delete(0, "end")
             self.overhang_entry.insert(0, f"{overhang:.0f}")
-            self.overhang_entry.configure(state="readonly")
+            self.overhang_entry.configure(state="disabled")
             self.purlin_len_entry.configure(state="normal")
             self.purlin_len_entry.delete(0, "end")
             self.purlin_len_entry.insert(0, f"{purlin_total:.0f}")
-            self.purlin_len_entry.configure(state="readonly")
+            self.purlin_len_entry.configure(state="disabled")
             if overhang < 0:
                 self.overhang_warn_label.config(
-                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：品间距×品数超出檩条总长，"
-                         f"请减小品间距或品数"
+                    text=f"⚠ 悬挑为负（{overhang:.0f} mm）：柱距×品数超出檩条总长，"
+                         f"请减小柱距或品数"
                 )
             elif overhang > 800:
                 self.overhang_warn_label.config(
-                    text=f"⚠ 檩条悬挑 {overhang:.0f} mm ＞ 800 mm：品间距或品数过少，"
-                         f"请增大品间距或品数"
+                    text=f"⚠ 檩条悬挑 {overhang:.0f} mm ＞ 800 mm：柱距或品数过少，"
+                         f"请增大柱距或品数"
                 )
             else:
                 self.overhang_warn_label.config(text="")
             frames_len = frames * bay
             if frames_len > total_length:
                 self.frame_warn_label.config(
-                    text=f"⚠ 榀数×品间距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
-                         f"{total_length:.0f} mm，请减小榀数或品间距"
+                    text=f"⚠ 榀数×柱距 = {frames_len:.0f} mm ＞ 组件阵列总长 "
+                         f"{total_length:.0f} mm，请减小榀数或柱距"
                 )
             else:
                 self.frame_warn_label.config(text="")
@@ -857,15 +854,15 @@ class PvSupportApp:
             self.beam_len_entry.configure(state="normal")
             self.beam_len_entry.delete(0, "end")
             self.beam_len_entry.insert(0, "")
-            self.beam_len_entry.configure(state="readonly")
+            self.beam_len_entry.configure(state="disabled")
             self.overhang_entry.configure(state="normal")
             self.overhang_entry.delete(0, "end")
             self.overhang_entry.insert(0, "")
-            self.overhang_entry.configure(state="readonly")
+            self.overhang_entry.configure(state="disabled")
             self.purlin_len_entry.configure(state="normal")
             self.purlin_len_entry.delete(0, "end")
             self.purlin_len_entry.insert(0, "")
-            self.purlin_len_entry.configure(state="readonly")
+            self.purlin_len_entry.configure(state="disabled")
             self.overhang_warn_label.config(text="")
             self.frame_warn_label.config(text="")
 
