@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.11 — 界面骨架（MVP M1，2026-08-12 第十四版）
+光伏支架线模生成器 V1.2.12 — 界面骨架（MVP M1，2026-08-12 第十五版）
 
 运行方式：
     python pv_support_gui.py
 
-V1.2.11 改动（按界面标注）：
-    1. 沿海城市风压放大系数复选框背景色与面板一致（去掉灰白底）；
-    2. 配色调整：斜撑=粉红色、支座=红色；
-    3. ④ 3D 预览：XYZ 坐标放大 1.3 倍，X/Y/Z 文字与坐标线拉开距离；
-    4. ② 支架形式：倾角文字左移避免遮挡；
-    5. ② 斜梁长度数据框宽度与上方输入框一致；隐藏计算公式文字（含檩条总长公式）；
-    6. "檩条外伸"标签改为"檩条外伸长度"；
-    7. ③ 构件截面表标题恢复靠左；
-    8. "风压/雪压（规范值，已锁定）"提示移到荷载区最底部显示。
+V1.2.12 改动（按界面标注 + 口述）：
+    1. 省/市/区县标签移到下拉框右侧；
+    2. ④ 3D 预览默认视角调整为"斜梁左高右低、从右前上方看"；
+    3. ② 倾角标注再左移，避免被边缘遮挡；
+    4. 输入框数值输入完成后自动取消选中（焦点离开即取消高亮）；
+    5. ② 新增【檩条悬挑】计算显示：= (檩条总长 - 柱距×榀数)/2；
+    6. ② 单位补齐并统一（倾角度、前后斜撑/端距/柱距 mm、榀数榀），
+       右列单位列弹性拉伸防裁切；斜梁长度 mm 改为正常颜色；
+    7. ② 红色超限提醒上移到柱距/榀数下方，避免被底部遮挡；
+    8. "檩条外伸长度"改回"檩条外伸"（避免界面被拉宽）。
 
 单位约定：mm / kN，荷载 kN/m²，功率 W。
 """
@@ -211,7 +212,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.11")
+        root.title("光伏支架线模生成器 V1.2.12")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -229,7 +230,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.11：斜撑粉红/支座红；坐标放大；公式隐藏；风压提示置底")
+        self.set_status("就绪 V1.2.12：檩条悬挑自动计算；单位补齐；默认视角左高右低；省市区县标签后置")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -378,36 +379,43 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="榀").grid(row=5, column=5, sticky="w")
 
-        ttk.Label(grp, text="斜撑离地").grid(row=6, column=0, sticky="w", pady=2)
-        self.vars["brace_ground"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5, justify="right")
-        e.grid(row=6, column=1, sticky="w", padx=(4, 2))
-        self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=6, column=2, sticky="w", padx=(0, 6))
-
-        ttk.Label(grp, text="檩条外伸长度").grid(row=6, column=3, sticky="w", pady=2)
-        self.vars["purlin_extension"] = tk.StringVar()
-        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
-        e.grid(row=6, column=4, sticky="w", padx=(4, 2))
-        self.calc_entries.append(e)
-        ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
-
-        ttk.Label(grp, text="斜梁长度").grid(row=7, column=0, sticky="w", pady=(2, 0))
-        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
-        self.beam_len_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(
-            grp, text="mm", foreground="#757575",
-            font=("Microsoft YaHei UI", 8),
-        ).grid(row=7, column=2, columnspan=4, sticky="w")
-        self.purlin_len_label = ttk.Label(
-            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
-        )
-        self.purlin_len_label.grid(row=8, column=0, columnspan=6, sticky="w", pady=(2, 0))
         self.frame_warn_label = ttk.Label(
             grp, foreground="#c62828", font=("Microsoft YaHei UI", 9, "bold"),
             wraplength=430, justify="left",
         )
-        self.frame_warn_label.grid(row=9, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        self.frame_warn_label.grid(row=6, column=0, columnspan=6, sticky="w", pady=(2, 0))
+
+        ttk.Label(grp, text="斜撑离地").grid(row=7, column=0, sticky="w", pady=2)
+        self.vars["brace_ground"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["brace_ground"], width=5, justify="right")
+        e.grid(row=7, column=1, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="檩条外伸").grid(row=7, column=3, sticky="w", pady=2)
+        self.vars["purlin_extension"] = tk.StringVar()
+        e = ttk.Entry(grp, textvariable=self.vars["purlin_extension"], width=5, justify="right")
+        e.grid(row=7, column=4, sticky="w", padx=(4, 2))
+        self.calc_entries.append(e)
+        ttk.Label(grp, text="mm").grid(row=7, column=5, sticky="w")
+
+        ttk.Label(grp, text="檩条悬挑").grid(row=8, column=0, sticky="w", pady=2)
+        self.overhang_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.overhang_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
+
+        ttk.Label(grp, text="斜梁长度").grid(row=9, column=0, sticky="w", pady=(2, 0))
+        self.beam_len_entry = ttk.Entry(grp, width=5, state="readonly", justify="right")
+        self.beam_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(
+            grp, text="mm",
+        ).grid(row=9, column=2, sticky="w", padx=(0, 6))
+        self.purlin_len_label = ttk.Label(
+            grp, foreground="#1565c0", font=("Microsoft YaHei UI", 9, "bold")
+        )
+        self.purlin_len_label.grid(row=10, column=0, columnspan=6, sticky="w", pady=(2, 0))
+        # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
+        grp.columnconfigure(5, weight=1)
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
@@ -468,7 +476,7 @@ class PvSupportApp:
         self.preview.pack(fill="both", expand=True)
         self.preview.bind("<Configure>", lambda _e: self.draw_viewer())
 
-        self.view_yaw = 0.6
+        self.view_yaw = math.pi - 0.6
         self.view_pitch = 0.35
         self.view_zoom = 1.0
         self.view_pan_x = 0.0
@@ -526,31 +534,31 @@ class PvSupportApp:
             font=("Microsoft YaHei UI", 9, "bold"),
         ).grid(row=0, column=0, columnspan=12, sticky="w", pady=(0, 2))
 
-        ttk.Label(grp, text="省").grid(row=1, column=0, sticky="w", pady=2)
         self.vars["city_prov"] = tk.StringVar()
         self.prov_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_prov"],
             values=[MANUAL_PROVINCE] + [prov_display(k) for k in sorted(self.city_data.keys())],
             state="readonly", width=5,
         )
-        self.prov_cb.grid(row=1, column=1, sticky="w", padx=(2, 8))
+        self.prov_cb.grid(row=1, column=0, sticky="w", padx=(0, 4))
         self.prov_cb.bind("<<ComboboxSelected>>", self._on_province_change)
+        ttk.Label(grp, text="省").grid(row=1, column=1, sticky="w", pady=2, padx=(0, 8))
 
-        ttk.Label(grp, text="市").grid(row=1, column=2, sticky="w", pady=2)
         self.vars["city_name"] = tk.StringVar()
         self.city_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_name"], state="readonly", width=9,
         )
-        self.city_cb.grid(row=1, column=3, sticky="w", padx=(2, 8))
+        self.city_cb.grid(row=1, column=2, sticky="w", padx=(0, 4))
         self.city_cb.bind("<<ComboboxSelected>>", self._on_city_change)
+        ttk.Label(grp, text="市").grid(row=1, column=3, sticky="w", pady=2, padx=(0, 8))
 
-        ttk.Label(grp, text="区县").grid(row=1, column=4, sticky="w", pady=2)
         self.vars["city_district"] = tk.StringVar()
         self.district_cb = ttk.Combobox(
             grp, textvariable=self.vars["city_district"], state="disabled", width=10,
         )
-        self.district_cb.grid(row=1, column=5, sticky="w", padx=(2, 8))
+        self.district_cb.grid(row=1, column=4, sticky="w", padx=(0, 4))
         self.district_cb.bind("<<ComboboxSelected>>", self._on_district_change)
+        ttk.Label(grp, text="区县").grid(row=1, column=5, sticky="w", pady=2, padx=(0, 8))
 
         ttk.Label(grp, text="抗震设防").grid(row=1, column=6, sticky="w", pady=2)
         self.vars["seismic"] = tk.StringVar()
@@ -733,7 +741,7 @@ class PvSupportApp:
     def _bind_calc_events(self):
         for e in self.calc_entries:
             e.bind("<KeyRelease>", lambda _ev: self.update_calc())
-            e.bind("<FocusOut>", lambda _ev: self.update_calc())
+            e.bind("<FocusOut>", lambda ev: (self.update_calc(), ev.widget.selection_clear()))
 
     # ------------------------------------------------------------ 支架示意交互
     def _profile_wheel(self, event):
@@ -805,8 +813,14 @@ class PvSupportApp:
             self.beam_len_entry.delete(0, "end")
             self.beam_len_entry.insert(0, f"{beam_len:.0f}")
             self.beam_len_entry.configure(state="readonly")
+            purlin_total = total_length + 2 * extension
+            overhang = max(0.0, (purlin_total - frames * bay) / 2)
+            self.overhang_entry.configure(state="normal")
+            self.overhang_entry.delete(0, "end")
+            self.overhang_entry.insert(0, f"{overhang:.0f}")
+            self.overhang_entry.configure(state="readonly")
             self.purlin_len_label.config(
-                text=f"檩条总长 ≈ {total_length + 2 * extension:.0f} mm"
+                text=f"檩条总长 ≈ {purlin_total:.0f} mm"
             )
             frames_len = frames * bay
             if frames_len > total_length:
@@ -824,6 +838,10 @@ class PvSupportApp:
             self.beam_len_entry.delete(0, "end")
             self.beam_len_entry.insert(0, "")
             self.beam_len_entry.configure(state="readonly")
+            self.overhang_entry.configure(state="normal")
+            self.overhang_entry.delete(0, "end")
+            self.overhang_entry.insert(0, "")
+            self.overhang_entry.configure(state="readonly")
             self.purlin_len_label.config(text="")
             self.frame_warn_label.config(text="")
 
@@ -940,7 +958,7 @@ class PvSupportApp:
 
         # 倾角：固定显示在画布右上角，不随缩放/平移移动
         c.create_text(
-            cw - 18, 12, anchor="ne", text=f"倾角 {math.degrees(a):.0f}度",
+            cw - 34, 14, anchor="ne", text=f"倾角 {math.degrees(a):.0f}度",
             fill="#424242", font=("Microsoft YaHei UI", 9, "bold"),
         )
 
