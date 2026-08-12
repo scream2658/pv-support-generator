@@ -35,6 +35,11 @@ SPEC_TYPE_ID = {
 
 def _sec_name_3d3s(spec, model):
     """截面名称转 3D3S 格式。"""
+    # 已符合 3D3S 库真实命名（方括号槽钢 / 矩xx / 方xx / φxx / Lxx）时直接使用
+    if model.startswith("["):
+        return model
+    if model.startswith(("矩", "方", "φ", "L")) and "×" not in model:
+        return model
     if spec == "槽钢":
         # 槽8 -> [8（3D3S 槽钢用方括号表示法）
         return "[" + model.replace("槽", "")
@@ -44,9 +49,16 @@ def _sec_name_3d3s(spec, model):
         # 矩形管100×50×3 -> 矩100x50x3
         return "矩" + model.replace("矩形管", "").replace("×", "x")
     if spec == "方钢管":
-        return "矩" + model.replace("方管", "").replace("×", "x")
+        # 方形空心型钢库名：方30x2.0 = 方[边长]x[壁厚]
+        m = model.replace("方管", "").replace("×", "x")
+        parts = m.split("x")
+        if len(parts) == 3 and parts[0] == parts[1]:
+            return "方%sx%s" % (parts[0], parts[2])
+        return "方" + m
     if spec == "圆钢/圆管":
         m = model.replace("圆管", "").replace("圆钢φ", "φ").replace("φ", "φ").replace("×", "x")
+        if model.startswith("圆管") and not m.startswith("φ"):
+            m = "φ" + m
         return m
     return model.replace("×", "X")
 

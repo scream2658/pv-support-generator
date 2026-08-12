@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.40 — 界面骨架（MVP M1，2026-08-12 第四十二版）
+光伏支架线模生成器 V1.2.41 — 界面骨架（MVP M1，2026-08-12 第四十三版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.41 改动（SAP2000 报错修复 + 3D3S 截面库并入）：
+    1. s2k 移除 SteelCode="Chinese 2018"（本机 SAP2000 26.3.0 导入不识别该规范名，
+       报错 "Steel frame design code Chinese 2018 is not recognized"）→ 恢复 0 错误；
+    2. 并入用户提供的 16 个 3D3S 截面库 .dat（381 个真实型号），新增
+       pv_3d3s_lib.py 数据模块；
+    3. 截面下拉与 3D3S 导出按 3D3S 库真实命名：槽钢 [8/[10、角钢 L50x5、
+       方管方30x2.0、矩形管矩200x100x4x6 等，圆管补 φ 前缀；
+    4. 3D3S 截面名转换修正（矩形管/方管不再被"矩/方"前缀短路误判）。
 
 V1.2.40 改动（截图批注：省市间距 + 参数行顺序）：
     1. ⑤ 荷载参数"省/市/区县/抗震设防"整行放入独立 Frame 横向排列，
@@ -234,7 +243,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.40")
+        root.title("光伏支架线模生成器 V1.2.41")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -252,7 +261,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.40：省市间距已压缩，参数顺序已调整")
+        self.set_status("就绪 V1.2.41：SAP2000 0错误；3D3S 截面库已并入")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):

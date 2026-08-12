@@ -1,5 +1,5 @@
 TABLE:  "PROGRAM CONTROL"
-   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"   SteelCode="Chinese 2018"
+   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   CurrUnits="N, mm, C"
 
 TABLE:  "ACTIVE DEGREES OF FREEDOM"
    UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes

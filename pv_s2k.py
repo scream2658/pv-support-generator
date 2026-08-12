@@ -159,7 +159,7 @@ def write_s2k(params, path):
     out = []
     out.append('TABLE:  "PROGRAM CONTROL"')
     out.append('   ProgramName=SAP2000   Version=26.3.0   ProgLevel=Advanced   '
-               'CurrUnits="N, mm, C"   SteelCode="Chinese 2018"')
+               'CurrUnits="N, mm, C"')
     out.append('')
     out.append('TABLE:  "ACTIVE DEGREES OF FREEDOM"')
     out.append('   UX=Yes   UY=Yes   UZ=Yes   RX=Yes   RY=Yes   RZ=Yes')
