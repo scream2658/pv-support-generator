@@ -127,6 +127,8 @@ def resource_path(name):
 # 常量与默认值
 # --------------------------------------------------------------------------
 
+AUTHOR_NAME = "scream2658"
+
 COMPONENT_LIB = {
     "高科545W":     (2278, 1134, 35, 28.5, 545),
     "正泰550W":     (2384, 1303, 35, 34.8, 550),
@@ -750,10 +752,13 @@ class PvSupportApp:
         ).grid(row=9, column=0, columnspan=12, sticky="w", pady=(4, 0))
 
     def _build_status_bar(self):
-        self.status = ttk.Label(
-            self.root, relief="sunken", anchor="w", padding=(8, 3),
-        )
-        self.status.pack(fill="x", side="bottom")
+        bar = ttk.Frame(self.root, relief="sunken")
+        bar.pack(fill="x", side="bottom")
+        self.status = ttk.Label(bar, anchor="w", padding=(8, 3))
+        self.status.pack(side="left", fill="x", expand=True)
+        author = ttk.Label(bar, anchor="e", padding=(0, 3, 8, 3))
+        author.config(text="作者：" + AUTHOR_NAME)
+        author.pack(side="right")
 
     # ------------------------------------------------------------ 城市查表
     def _load_city_data(self):
@@ -1569,26 +1574,51 @@ class PvSupportApp:
         self.set_status(f"工程已保存：{path}")
 
     def show_about(self):
-        """软件介绍对话框。"""
-        messagebox.showinfo(
-            "关于 光伏支架线模生成器",
-            "光伏支架线模生成器 V0.2.0（正式版，2026-08-13）\n"
-            "\n"
-            "功能：\n"
-            "· ① 组件参数：组件库/尺寸/功率/阵列，自动计算阵列宽长与功率\n"
-            "· ② 支架形式：侧面示意（缩放/平移），自动计算悬挑/总长/立柱/斜梁/斜撑\n"
-            "· ③ 构件截面表：规格/型号/材质，内置 3D3S 真实截面库（381 型号）\n"
-            "· ④ 3D 线框预览：中键旋转（Z 轴竖直）、右键平移、滚轮缩放\n"
-            "· ⑤ 荷载参数：城市查表（GB50009-2012）+ 抗震设防自动匹配\n"
-            "\n"
-            "导出：\n"
-            "· DXF 线模（含截面信息）\n"
-            "· 3D3S 文本模型 / Excel\n"
-            "· SAP2000 .s2k（0 错误导入）\n"
-            "\n"
-            "运行：python pv_support_gui.py\n"
-            "GitHub：https://github.com/scream2658/pv-support-generator",
-        )
+        """关于对话框：显示作者微信二维码与联系方式。"""
+        win = tk.Toplevel(self.root)
+        win.title("关于 光伏支架线模生成器")
+        win.resizable(False, False)
+        win.transient(self.root)
+        win.grab_set()
+
+        frame = ttk.Frame(win, padding=16)
+        frame.pack()
+
+        ttk.Label(
+            frame,
+            text="光伏支架线模生成器 V0.2.0",
+            font=("Microsoft YaHei UI", 12, "bold"),
+        ).pack(pady=(0, 2))
+        ttk.Label(
+            frame,
+            text="作者：" + AUTHOR_NAME,
+            font=("Microsoft YaHei UI", 10),
+        ).pack(pady=(0, 8))
+
+        qr_path = resource_path("wechat_qr.png")
+        if os.path.exists(qr_path):
+            try:
+                qr = tk.PhotoImage(file=qr_path)
+                lbl = tk.Label(frame, image=qr, bg="white")
+                lbl.image = qr
+                lbl.pack(pady=(0, 6))
+            except tk.TclError:
+                ttk.Label(frame, text="（微信二维码加载失败）").pack(pady=(0, 6))
+        else:
+            ttk.Label(
+                frame,
+                text="微信二维码（wechat_qr.png 未找到）",
+                foreground="#757575",
+            ).pack(pady=(0, 6))
+
+        ttk.Label(
+            frame,
+            text="欢迎扫码支持作者，也欢迎反馈建议",
+            font=("Microsoft YaHei UI", 9),
+            foreground="#616161",
+        ).pack()
+
+        ttk.Button(frame, text="关闭", command=win.destroy).pack(pady=(10, 0))
 
     def open_project(self):
         path = filedialog.askopenfilename(
