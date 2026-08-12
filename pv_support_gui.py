@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.48 — 界面骨架（MVP M1，2026-08-13 第五十版）
+光伏支架线模生成器 V1.2.49 — 界面骨架（MVP M1，2026-08-13 第五十一版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.49 改动（打开工程整数值显示修复）：
+    1. 原因：保存工程时 collect_params 将数值统一转 float，
+       打开工程时 setv 用 str(value) 显示 → 2278.0 / 20.0 等；
+    2. 修复：apply_params 的 setv 对整数浮点值（value.is_integer()）
+       先转 int 再显示，整数字段恢复 2278/35/545/20/2000，
+       小数（28.5/0.05/1.1）保持原样；
+    3. 仅改显示层，保存/导出逻辑未动，旧工程文件也自动修正。
 
 V1.2.48 改动（导出失败友好提示）：
     1. 生成 DXF / 3D3S / SAP2000 三个导出按钮统一错误提示：
@@ -294,7 +302,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.48")
+        root.title("光伏支架线模生成器 V1.2.49")
         root.geometry("916x820")
         root.resizable(False, False)
         try:
@@ -312,7 +320,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.48：导出被占用时提示关闭 CAD 后重试")
+        self.set_status("就绪 V1.2.49：打开工程整数值已恢复正常显示")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -1341,6 +1349,9 @@ class PvSupportApp:
         def setv(key, value):
             if value is None:
                 return
+            # 整数值去掉小数点（2278.0 -> 2278），小数保持原样（28.5/0.05/1.1）
+            if isinstance(value, float) and value.is_integer():
+                value = int(value)
             self.vars[key].set(str(value))
 
         setv("project_name", params.get("project", {}).get("name", ""))
