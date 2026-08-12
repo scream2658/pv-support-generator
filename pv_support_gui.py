@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-光伏支架线模生成器 V1.2.41 — 界面骨架（MVP M1，2026-08-12 第四十三版）
+光伏支架线模生成器 V1.2.42 — 界面骨架（MVP M1，2026-08-13 第四十四版）
 
 运行方式：
     python pv_support_gui.py
+
+V1.2.42 改动（截图批注：参数行填满 + 整体边距收紧）：
+    1. ② 支架形式只读计算字段改为两行两列填满右侧空白：
+       檩条悬挑 | 檩条总长（一行），立柱高度 | 斜梁长度（下一行），
+       前斜撑长 | 后斜撑长（再下一行）；不再每行只占左列留右空；
+    2. 整体边距收紧：主框架左右 padding 10→6/4、左右分栏间距
+       10→6、①/②/④/⑤ 面板 padding 与纵向间距各压缩约 40%；
+    3. 3D 预览缩放保持原样（0.62 系数 + 手动缩放），未改动。
 
 V1.2.41 改动（SAP2000 报错修复 + 3D3S 截面库并入）：
     1. s2k 移除 SteelCode="Chinese 2018"（本机 SAP2000 26.3.0 导入不识别该规范名，
@@ -243,7 +251,7 @@ class PvSupportApp:
         self.root = root
         self.vars = {}
 
-        root.title("光伏支架线模生成器 V1.2.41")
+        root.title("光伏支架线模生成器 V1.2.42")
         root.geometry("1120x820")
         root.resizable(False, False)
         try:
@@ -261,7 +269,7 @@ class PvSupportApp:
         self._build_status_bar()
         self._bind_calc_events()
         self.apply_params(DEFAULT_PARAMS)
-        self.set_status("就绪 V1.2.41：SAP2000 0错误；3D3S 截面库已并入")
+        self.set_status("就绪 V1.2.42：参数行已填满右侧，整体边距已收紧")
 
     # -------------------------------------------------------------- 顶部栏
     def _build_top_bar(self):
@@ -290,11 +298,11 @@ class PvSupportApp:
 
     # ------------------------------------------------------------ 主区域
     def _build_main_area(self):
-        main = ttk.Frame(self.root, padding=(10, 0, 10, 4))
+        main = ttk.Frame(self.root, padding=(6, 0, 4, 2))
         main.pack(fill="both", expand=True)
 
         left = ScrollableFrame(main)
-        left.pack(side="left", fill="y", padx=(0, 10))
+        left.pack(side="left", fill="y", padx=(0, 6))
         left.configure(width=580)
 
         right = ttk.Frame(main)
@@ -309,8 +317,8 @@ class PvSupportApp:
 
     # ---------------------------------------------------------- ① 组件参数
     def _build_module_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="① 组件参数", padding=(8, 6))
-        grp.pack(fill="x", pady=(0, 8))
+        grp = ttk.LabelFrame(parent, text="① 组件参数", padding=(6, 4))
+        grp.pack(fill="x", pady=(0, 4))
 
         ttk.Label(grp, text="组件库").grid(row=0, column=0, sticky="w", pady=2)
         self.vars["module_lib"] = tk.StringVar()
@@ -358,9 +366,9 @@ class PvSupportApp:
     def _build_support_group(self, parent):
         grp = ttk.LabelFrame(
             parent, text="② 支架形式（侧面示意 · 滚轮缩放 / 右键平移）",
-            padding=(8, 6),
+            padding=(6, 4),
         )
-        grp.pack(fill="x", pady=(0, 8))
+        grp.pack(fill="x", pady=(0, 4))
 
         self.profile = tk.Canvas(
             grp, bg="white", height=200, highlightthickness=1,
@@ -438,41 +446,42 @@ class PvSupportApp:
         self.calc_entries.append(e)
         ttk.Label(grp, text="mm").grid(row=6, column=5, sticky="w")
 
+        # 四个只读计算字段两行两列：悬挑|总长 / 立柱高度|斜梁长度，填满右侧空白
         ttk.Label(grp, text="檩条悬挑").grid(row=7, column=0, sticky="w", pady=2)
         self.overhang_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
         self.overhang_entry.grid(row=7, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=7, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="檩条总长").grid(row=8, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="檩条总长").grid(row=7, column=3, sticky="w", pady=2)
         self.purlin_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.purlin_len_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
+        self.purlin_len_entry.grid(row=7, column=4, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=7, column=5, sticky="w")
+
+        ttk.Label(grp, text="立柱高度").grid(row=8, column=0, sticky="w", pady=(2, 0))
+        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
+        self.col_h_entry.grid(row=8, column=1, sticky="w", padx=(4, 2))
         ttk.Label(grp, text="mm").grid(row=8, column=2, sticky="w", padx=(0, 6))
 
-        ttk.Label(grp, text="立柱高度").grid(row=9, column=0, sticky="w", pady=(2, 0))
-        self.col_h_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.col_h_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 6))
-
-        ttk.Label(grp, text="斜梁长度").grid(row=10, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="斜梁长度").grid(row=8, column=3, sticky="w", pady=(2, 0))
         self.beam_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.beam_len_entry.grid(row=10, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=10, column=2, sticky="w", padx=(0, 6))
+        self.beam_len_entry.grid(row=8, column=4, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=8, column=5, sticky="w")
 
-        ttk.Label(grp, text="前斜撑长").grid(row=11, column=0, sticky="w", pady=(2, 0))
+        ttk.Label(grp, text="前斜撑长").grid(row=9, column=0, sticky="w", pady=(2, 0))
         self.front_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.front_brace_len_entry.grid(row=11, column=1, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=11, column=2, sticky="w", padx=(0, 6))
-        ttk.Label(grp, text="后斜撑长").grid(row=11, column=3, sticky="w", pady=(2, 0))
+        self.front_brace_len_entry.grid(row=9, column=1, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=9, column=2, sticky="w", padx=(0, 6))
+        ttk.Label(grp, text="后斜撑长").grid(row=9, column=3, sticky="w", pady=(2, 0))
         self.rear_brace_len_entry = ttk.Entry(grp, width=5, state="disabled", justify="right")
-        self.rear_brace_len_entry.grid(row=11, column=4, sticky="w", padx=(4, 2))
-        ttk.Label(grp, text="mm").grid(row=11, column=5, sticky="w")
+        self.rear_brace_len_entry.grid(row=9, column=4, sticky="w", padx=(4, 2))
+        ttk.Label(grp, text="mm").grid(row=9, column=5, sticky="w")
 
         # 右列单位列弹性拉伸，保证单位标签不被右侧裁切
         grp.columnconfigure(5, weight=1)
 
     # ------------------------------------------------------ ③ 构件截面表
     def _build_section_group(self, parent):
-        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(8, 4))
+        grp = ttk.LabelFrame(parent, text="③ 构件截面表", padding=(6, 3))
         grp.pack(fill="x")
 
         ttk.Label(grp, text="构件", anchor="center").grid(row=0, column=0, sticky="ew", padx=(0, 6))
@@ -518,9 +527,9 @@ class PvSupportApp:
     def _build_preview(self, parent):
         frame = ttk.LabelFrame(
             parent, text="④ 3D 线框预览（中键旋转 · 右键平移 · 滚轮缩放 · Z轴保持竖直）",
-            padding=(6, 4),
+            padding=(5, 3),
         )
-        frame.pack(fill="both", expand=True, pady=(0, 8))
+        frame.pack(fill="both", expand=True, pady=(0, 4))
 
         self.preview = tk.Canvas(
             frame, bg="#f5f5f5", highlightthickness=1,
@@ -568,7 +577,7 @@ class PvSupportApp:
     def _build_load_group(self, parent):
         grp = ttk.LabelFrame(
             parent, text="⑤ 荷载参数（NB/T 10115-2018 简化 · 城市查表 GB50009-2012）",
-            padding=(8, 6),
+            padding=(6, 4),
         )
         grp.pack(fill="x")
 
